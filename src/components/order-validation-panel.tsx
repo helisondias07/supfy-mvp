@@ -1,7 +1,7 @@
 "use client";
 
 import { Boxes, CheckCircle2, ClipboardCheck, SendToBack } from "lucide-react";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatQuantityUnit } from "@/lib/formatters";
 import type { ValidatedOrderItem } from "@/lib/types";
 import { Badge } from "./ui/badge";
 
@@ -86,10 +86,20 @@ export function OrderValidationPanel({
             </div>
 
             <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
-              <ItemFact label="Quantidade" value={`${item.quantity || "-"} ${item.unit || ""}`} />
+              <ItemFact
+                label="Quantidade"
+                value={item.quantity ? formatQuantityUnit(item.quantity, item.unit) : "-"}
+              />
               <ItemFact label="Preço unitário" value={formatCurrency(item.unitPrice)} />
               <ItemFact label="Subtotal válido" value={formatCurrency(item.subtotal)} />
-              <ItemFact label="Estoque disponível" value={`${item.availableStock} ${item.product?.unit ?? ""}`} />
+              <ItemFact
+                label="Estoque disponível"
+                value={
+                  item.product
+                    ? formatQuantityUnit(item.availableStock, item.product.unit)
+                    : String(item.availableStock)
+                }
+              />
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-500">{item.note}</p>
           </article>

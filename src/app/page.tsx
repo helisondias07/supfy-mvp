@@ -13,7 +13,7 @@ import { RecentOrders } from "@/components/recent-orders";
 import { ResultSection } from "@/components/result-section";
 import { ToastStack } from "@/components/ui/toast";
 import { getProductStatus, initialCatalog } from "@/lib/catalog-data";
-import { formatSyncTime } from "@/lib/formatters";
+import { formatQuantityUnit, formatSyncTime } from "@/lib/formatters";
 import { parseOrderMessage } from "@/lib/order-parser";
 import { validateOrderItems } from "@/lib/order-validation";
 import type { Product, RecentOrder, ToastMessage, ValidatedOrderItem } from "@/lib/types";
@@ -124,8 +124,9 @@ export default function Home() {
     const orderTotal = validItems.reduce((sum, item) => sum + item.subtotal, 0);
     const orderSummary = validItems
       .slice(0, 2)
-      .map((item) => `${item.quantity} ${item.unit} ${item.product?.name ?? item.originalName}`)
+      .map((item) => `${formatQuantityUnit(item.quantity, item.unit)} ${item.product?.name ?? item.originalName}`)
       .join(", ");
+    const remainingItems = validItems.length - 2;
 
     setCatalog((currentCatalog) =>
       currentCatalog.map((product) => {
@@ -166,8 +167,8 @@ export default function Home() {
       exceptionItems: exceptionItems.length,
       status: exceptionItems.length > 0 ? "Confirmado com exceções" : "Confirmado",
       summary:
-        validItems.length > 2
-          ? `${orderSummary} e mais ${validItems.length - 2} item(ns)`
+        remainingItems > 0
+          ? `${orderSummary} e mais ${remainingItems} ${remainingItems === 1 ? "item" : "itens"}`
           : orderSummary,
     };
     setRecentOrders((currentOrders) => [nextOrder, ...currentOrders].slice(0, 6));

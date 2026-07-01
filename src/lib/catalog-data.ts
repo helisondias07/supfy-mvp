@@ -6,6 +6,7 @@ export const initialCatalog: Product[] = [
     name: "Leite Integral UHT",
     category: "Laticínios",
     unit: "caixa",
+    unitAliases: ["caixa", "caixas"],
     price: 6.9,
     stock: 140,
     aliases: [
@@ -23,6 +24,7 @@ export const initialCatalog: Product[] = [
     name: "Refrigerante Cola 2L",
     category: "Bebidas",
     unit: "unidade",
+    unitAliases: ["unidade", "unidades", "fardo", "fardos"],
     price: 9.5,
     stock: 120,
     aliases: [
@@ -44,6 +46,7 @@ export const initialCatalog: Product[] = [
     name: "Arroz Tipo 1",
     category: "Mercearia",
     unit: "kg",
+    unitAliases: ["kg", "quilo", "quilos"],
     price: 5.8,
     stock: 300,
     aliases: [
@@ -61,6 +64,7 @@ export const initialCatalog: Product[] = [
     name: "Feijão Carioca",
     category: "Mercearia",
     unit: "kg",
+    unitAliases: ["kg", "quilo", "quilos"],
     price: 8.4,
     stock: 180,
     aliases: [
@@ -78,6 +82,7 @@ export const initialCatalog: Product[] = [
     name: "Açúcar Refinado",
     category: "Mercearia",
     unit: "kg",
+    unitAliases: ["kg", "quilo", "quilos"],
     price: 4.9,
     stock: 260,
     aliases: [
@@ -96,6 +101,7 @@ export const initialCatalog: Product[] = [
     name: "Óleo de Soja 900ml",
     category: "Mercearia",
     unit: "unidade",
+    unitAliases: ["unidade", "unidades", "garrafa", "garrafas"],
     price: 7.8,
     stock: 95,
     aliases: [
@@ -115,6 +121,7 @@ export const initialCatalog: Product[] = [
     name: "Café Torrado 500g",
     category: "Mercearia",
     unit: "pacote",
+    unitAliases: ["pacote", "pacotes"],
     price: 18.9,
     stock: 80,
     aliases: [
@@ -136,6 +143,7 @@ export const initialCatalog: Product[] = [
     name: "Água Mineral 500ml",
     category: "Bebidas",
     unit: "fardo",
+    unitAliases: ["fardo", "fardos"],
     price: 16,
     stock: 45,
     aliases: [
@@ -155,6 +163,7 @@ export const initialCatalog: Product[] = [
     name: "Biscoito Cream Cracker",
     category: "Mercearia",
     unit: "pacote",
+    unitAliases: ["pacote", "pacotes"],
     price: 6.5,
     stock: 110,
     aliases: [
@@ -173,6 +182,7 @@ export const initialCatalog: Product[] = [
     name: "Detergente 500ml",
     category: "Limpeza",
     unit: "unidade",
+    unitAliases: ["unidade", "unidades", "frasco", "frascos"],
     price: 3.2,
     stock: 160,
     aliases: [

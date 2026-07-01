@@ -7,9 +7,10 @@ const normalize = (value: string) =>
     .toLowerCase()
     .trim();
 
-const unitsMatch = (requested: string, catalogUnit: string) => {
+const unitIsAccepted = (requested: string, product: Product) => {
   if (!requested) return false;
-  return normalize(requested) === normalize(catalogUnit);
+  const acceptedUnits = [product.unit, ...(product.unitAliases ?? [])];
+  return acceptedUnits.some((unit) => normalize(unit) === normalize(requested));
 };
 
 export function findProduct(itemName: string, catalog: Product[]) {
@@ -48,7 +49,7 @@ export function validateOrderItems(
       };
     }
 
-    if (!item.quantity || item.quantity <= 0 || !unitsMatch(item.unit, product.unit)) {
+    if (!item.quantity || item.quantity <= 0 || !unitIsAccepted(item.unit, product)) {
       const unitNote =
         item.quantity > 0 && item.unit
           ? `O cliente pediu em ${item.unit}, mas o catálogo trabalha em ${product.unit}.`
@@ -84,7 +85,10 @@ export function validateOrderItems(
       subtotal: item.quantity * product.price,
       availableStock: product.stock,
       status: "Validado",
-      note: "Produto, preço, unidade e estoque validados pelo catálogo.",
+      note:
+        normalize(item.unit) === normalize(product.unit)
+          ? "Produto, preço, unidade e estoque validados pelo catálogo."
+          : `Produto, preço e disponibilidade validados. A unidade "${item.unit}" foi aceita como variação comercial para ${product.name}.`,
     };
   });
 }

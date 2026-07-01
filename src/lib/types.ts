@@ -7,6 +7,7 @@ export type Product = {
   name: string;
   category: string;
   unit: string;
+  unitAliases?: string[];
   price: number;
   stock: number;
   aliases: string[];
