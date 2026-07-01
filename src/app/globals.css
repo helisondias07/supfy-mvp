@@ -1,26 +1,189 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2f4f7;
+  --foreground: #101828;
+  --nola-primary: #fd6263;
+  --nola-primary-dark: #d34447;
+  --nola-primary-subtle: rgba(253, 98, 99, 0.08);
+  --nola-primary-glow: rgba(253, 98, 99, 0.22);
+  --nola-gradient: linear-gradient(135deg, #fd6263 0%, #d34447 100%);
+  --nola-navy: #101828;
+  --nola-muted: #475467;
+  --nola-soft: #f8f9fb;
+  --nola-card: rgba(255, 255, 255, 0.72);
+  --nola-border: rgba(16, 24, 40, 0.08);
+  --nola-border-hover: rgba(16, 24, 40, 0.15);
+  --nola-shadow: 0 8px 32px rgba(16, 24, 40, 0.1);
+  --nola-shadow-sm: 0 2px 8px rgba(16, 24, 40, 0.06);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-coral-50: rgba(253, 98, 99, 0.08);
+  --color-coral-100: rgba(253, 98, 99, 0.16);
+  --color-coral-500: #fd6263;
+  --color-coral-600: #d34447;
+  --color-coral-700: #b43b3e;
+  --font-sans: var(--font-inter);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(rgba(16, 24, 40, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 24, 40, 0.028) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 50% 28% at 16% 5%, rgba(253, 98, 99, 0.055), transparent 64%),
+    radial-gradient(ellipse 42% 30% at 82% 16%, rgba(36, 34, 253, 0.025), transparent 60%),
+    linear-gradient(180deg, rgba(242, 244, 247, 0) 0%, rgba(242, 244, 247, 0.42) 68%);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 180ms ease-out;
+}
+
+.nola-card {
+  border: 1px solid var(--nola-border);
+  border-radius: 20px;
+  background: var(--nola-card);
+  box-shadow: var(--nola-shadow-sm);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.nola-section-band {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(248, 249, 251, 0.88)),
+    repeating-linear-gradient(
+      0deg,
+      rgba(16, 24, 40, 0.018) 0,
+      rgba(16, 24, 40, 0.018) 1px,
+      transparent 1px,
+      transparent 56px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(16, 24, 40, 0.018) 0,
+      rgba(16, 24, 40, 0.018) 1px,
+      transparent 1px,
+      transparent 56px
+    );
+  box-shadow: 0 18px 60px rgba(16, 24, 40, 0.07);
+}
+
+.nola-section-band::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 35% at 12% 0%, rgba(253, 98, 99, 0.045), transparent 60%);
+}
+
+.nola-section-band > * {
+  position: relative;
+}
+
+.nola-card-hover {
+  transition:
+    border-color 250ms ease,
+    background 250ms ease,
+    transform 250ms ease,
+    box-shadow 250ms ease;
+}
+
+.nola-card-hover:hover {
+  border-color: var(--nola-border-hover);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--nola-shadow);
+  transform: translateY(-2px);
+}
+
+.nola-button-primary {
+  border-radius: 999px;
+  background: var(--nola-gradient);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(253, 98, 99, 0.28);
+  transition:
+    transform 250ms ease,
+    box-shadow 250ms ease,
+    filter 250ms ease;
+}
+
+.nola-button-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(253, 98, 99, 0.38);
+  filter: brightness(1.04);
+}
+
+.nola-button-secondary {
+  border: 1px solid var(--nola-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--nola-navy);
+  transition:
+    border-color 200ms ease,
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+.nola-button-secondary:hover:not(:disabled) {
+  border-color: var(--nola-border-hover);
+  background: rgba(255, 255, 255, 0.88);
+  transform: translateY(-1px);
+}
+
+.nola-surface {
+  border: 1px solid var(--nola-border);
+  border-radius: 16px;
+  background: rgba(248, 249, 251, 0.82);
 }
