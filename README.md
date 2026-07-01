@@ -1,4 +1,4 @@
-# Supfy Pedidos Inteligentes
+# Supfy MVP
 
 Protótipo frontend demonstrativo criado para o desafio prático de estágio em Desenvolvimento da Supfy.
 
