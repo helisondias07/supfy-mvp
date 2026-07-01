@@ -43,6 +43,18 @@ export type ToastMessage = {
   type: "success" | "info";
 };
 
+export type RecentOrder = {
+  id: string;
+  customer: string;
+  source: "WhatsApp";
+  createdAt: string;
+  total: number;
+  validItems: number;
+  exceptionItems: number;
+  status: "Confirmado" | "Confirmado com exceções";
+  summary: string;
+};
+
 export type Metric = {
   title: string;
   description: string;

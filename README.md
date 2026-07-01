@@ -37,6 +37,7 @@ O fluxo demonstrado é:
 5. Itens válidos podem ser confirmados.
 6. Itens inválidos, ambíguos ou sem estoque seguem para revisão humana.
 7. Ao confirmar, o estoque disponível é atualizado em memória.
+8. Pedidos confirmados entram em um histórico temporário de pedidos recentes.
 
 ## Como rodar o projeto
 
@@ -164,6 +165,23 @@ Ao salvar um novo preço:
 
 Isso demonstra o conceito de fonte única de verdade para preço.
 
+### 6. Consultar pedidos recentes
+
+Após confirmar um pedido, ele aparece na seção `Pedidos recentes`.
+
+Essa seção mostra:
+
+- número do pedido;
+- cliente simulado;
+- resumo dos itens válidos;
+- valor total confirmado;
+- quantidade de itens válidos;
+- quantidade de exceções;
+- origem do pedido;
+- horário da confirmação.
+
+O histórico é salvo em `sessionStorage`, ou seja, permanece disponível durante a sessão atual do navegador. Ao fechar o navegador e abrir a página novamente, esse histórico é reiniciado.
+
 ## Regras de negócio implementadas
 
 - O catálogo central é a única fonte de preço e estoque.
@@ -176,6 +194,7 @@ Isso demonstra o conceito de fonte única de verdade para preço.
 - Apenas itens validados podem ser confirmados.
 - A confirmação reduz estoque apenas em memória.
 - Alterações de preço ou estoque atualizam a última sincronização.
+- Pedidos confirmados são registrados em um histórico temporário da sessão.
 
 ## Decisões técnicas
 
@@ -263,6 +282,7 @@ Essa escolha foi feita porque:
 - Ao recarregar a página, os dados voltam ao estado inicial.
 - A interpretação do pedido é simulada com regras locais.
 - Não existe persistência de pedidos.
+- O histórico de pedidos recentes existe apenas durante a sessão atual do navegador.
 - Não existe fila real de revisão humana.
 - Não há integração com WhatsApp Business API.
 - Não há integração com ERP ou sistema financeiro.

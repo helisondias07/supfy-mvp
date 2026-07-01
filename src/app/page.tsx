@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Boxes, Database, Info, MessagesSquare, PackageCheck } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
@@ -9,13 +9,16 @@ import { OrderSimulator } from "@/components/order-simulator";
 import { OrderValidationPanel } from "@/components/order-validation-panel";
 import { PriceEditor } from "@/components/price-editor";
 import { ProductCatalog } from "@/components/product-catalog";
+import { RecentOrders } from "@/components/recent-orders";
 import { ResultSection } from "@/components/result-section";
 import { ToastStack } from "@/components/ui/toast";
 import { getProductStatus, initialCatalog } from "@/lib/catalog-data";
 import { formatSyncTime } from "@/lib/formatters";
 import { parseOrderMessage } from "@/lib/order-parser";
 import { validateOrderItems } from "@/lib/order-validation";
-import type { Product, ToastMessage, ValidatedOrderItem } from "@/lib/types";
+import type { Product, RecentOrder, ToastMessage, ValidatedOrderItem } from "@/lib/types";
+
+const recentOrdersStorageKey = "supfy-mvp:recent-orders";
 
 const metrics = [
   {
@@ -46,6 +49,20 @@ const progressMessages = [
   "Consultando catálogo central...",
 ];
 
+const loadRecentOrders = () => {
+  if (typeof window === "undefined") return [];
+
+  const savedOrders = window.sessionStorage.getItem(recentOrdersStorageKey);
+  if (!savedOrders) return [];
+
+  try {
+    return JSON.parse(savedOrders) as RecentOrder[];
+  } catch {
+    window.sessionStorage.removeItem(recentOrdersStorageKey);
+    return [];
+  }
+};
+
 export default function Home() {
   const [catalog, setCatalog] = useState<Product[]>(initialCatalog);
   const [message, setMessage] = useState("");
@@ -58,8 +75,13 @@ export default function Home() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [syncPulse, setSyncPulse] = useState(false);
   const [confirmationFeedback, setConfirmationFeedback] = useState("");
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>(loadRecentOrders);
 
   const syncLabel = useMemo(() => (syncDate ? formatSyncTime(syncDate) : "agora"), [syncDate]);
+
+  useEffect(() => {
+    window.sessionStorage.setItem(recentOrdersStorageKey, JSON.stringify(recentOrders));
+  }, [recentOrders]);
 
   function addToast(messageData: Omit<ToastMessage, "id">) {
     const id = crypto.randomUUID();
@@ -97,7 +119,13 @@ export default function Home() {
 
   function handleConfirmValidItems() {
     const validItems = validatedItems.filter((item) => item.status === "Validado" && item.product);
+    const exceptionItems = validatedItems.filter((item) => item.status !== "Validado");
     if (validItems.length === 0) return;
+    const orderTotal = validItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const orderSummary = validItems
+      .slice(0, 2)
+      .map((item) => `${item.quantity} ${item.unit} ${item.product?.name ?? item.originalName}`)
+      .join(", ");
 
     setCatalog((currentCatalog) =>
       currentCatalog.map((product) => {
@@ -128,6 +156,21 @@ export default function Home() {
           : item,
       ),
     );
+    const nextOrder: RecentOrder = {
+      id: `#${String(Date.now()).slice(-5)}`,
+      customer: "Cliente WhatsApp",
+      source: "WhatsApp",
+      createdAt: formatSyncTime(new Date()),
+      total: orderTotal,
+      validItems: validItems.length,
+      exceptionItems: exceptionItems.length,
+      status: exceptionItems.length > 0 ? "Confirmado com exceções" : "Confirmado",
+      summary:
+        validItems.length > 2
+          ? `${orderSummary} e mais ${validItems.length - 2} item(ns)`
+          : orderSummary,
+    };
+    setRecentOrders((currentOrders) => [nextOrder, ...currentOrders].slice(0, 6));
     refreshSyncVisual();
     setConfirmationFeedback(
       "Pedido confirmado. Disponibilidade atualizada para operação e atendimento.",
@@ -237,6 +280,7 @@ export default function Home() {
           </div>
         </section>
 
+        <RecentOrders orders={recentOrders} />
         <ProductCatalog products={catalog} syncPulse={syncPulse} onEditPrice={setEditingProduct} />
         <ResultSection />
 
