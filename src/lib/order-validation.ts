@@ -19,9 +19,15 @@ export function findProduct(itemName: string, catalog: Product[]) {
     return undefined;
   }
 
-  return catalog.find((product) =>
-    product.aliases.some((alias) => normalizedName.includes(normalize(alias))),
-  );
+  return catalog
+    .flatMap((product) =>
+      product.aliases.map((alias) => ({
+        product,
+        normalizedAlias: normalize(alias),
+      })),
+    )
+    .sort((a, b) => b.normalizedAlias.length - a.normalizedAlias.length)
+    .find(({ normalizedAlias }) => normalizedName.includes(normalizedAlias))?.product;
 }
 
 export function validateOrderItems(

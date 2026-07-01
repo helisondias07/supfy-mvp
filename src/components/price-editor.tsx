@@ -31,8 +31,8 @@ function PriceEditorDialog({
   const isValid = Number.isFinite(numericValue) && numericValue > 0;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/40 px-4">
-      <div className="nola-card w-full max-w-md p-5 shadow-2xl shadow-slate-950/20">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-[22px] border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl shadow-slate-950/25">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-lg font-black text-[#101828]">Editar preço</h3>
@@ -41,7 +41,7 @@ function PriceEditorDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
             aria-label="Fechar editor de preço"
           >
             <X className="h-4 w-4" aria-hidden />
@@ -57,7 +57,7 @@ function PriceEditorDialog({
             value={value}
             onChange={(event) => setValue(event.target.value)}
             inputMode="decimal"
-            className="mt-2 w-full rounded-2xl border border-[var(--nola-border)] bg-white/75 px-4 py-3 text-sm outline-none transition focus:border-coral-500 focus:ring-4 focus:ring-coral-100"
+            className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-coral-500 focus:bg-white focus:ring-4 focus:ring-coral-100"
           />
           <p className="mt-2 text-sm text-slate-500">
             Valor atual: {formatCurrency(product.price)}
