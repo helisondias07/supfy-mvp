@@ -223,8 +223,8 @@ export default function Home() {
         onSave={handleSavePrice}
       />
 
-      <main className="mx-auto w-full max-w-[1400px] px-5 py-8 sm:px-6 lg:px-8">
-        <section className="pt-10">
+      <main className="mx-auto w-full max-w-[1400px] px-4 py-7 sm:px-6 sm:py-8 lg:px-8">
+        <section className="pt-7 sm:pt-10">
           <div className="max-w-4xl">
             <Image
               src="/nola-logo-preto.svg"
@@ -232,7 +232,7 @@ export default function Home() {
               width={220}
               height={106}
               priority
-              className="mb-8 h-20 w-auto"
+              className="mb-7 h-16 w-auto sm:mb-8 sm:h-20"
             />
             <p className="mb-5 text-sm font-extrabold text-coral-500">
               De pedidos por mensagem, para pedidos validados.
@@ -255,7 +255,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="nola-section-band mt-10 p-5 sm:p-7 lg:p-8">
+        <section className="nola-section-band mt-10 p-4 sm:p-7 lg:p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores do MVP">
             {metrics.map((metric) => (
               <MetricCard key={metric.title} {...metric} />

@@ -33,7 +33,7 @@ export function OrderValidationPanel({
 
   if (!processedOnce) {
     return (
-      <section className="nola-card flex min-h-[560px] items-center justify-center border-dashed p-8 text-center">
+      <section className="nola-card flex min-h-[360px] items-center justify-center border-dashed p-6 text-center sm:min-h-[560px] sm:p-8">
         <div>
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-coral-50 text-coral-500">
             <ClipboardCheck className="h-7 w-7" aria-hidden />
@@ -48,20 +48,22 @@ export function OrderValidationPanel({
   }
 
   return (
-    <section className="nola-card p-5">
-      <div className="flex flex-col gap-4 border-b border-[var(--nola-border)] pb-5 md:flex-row md:items-start md:justify-between">
+    <section className="nola-card p-4 sm:p-5">
+      <div className="flex flex-col gap-4 border-b border-[var(--nola-border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-xl font-black text-[#101828]">Validação do pedido</h2>
+          <h2 className="text-xl font-black leading-tight text-[#101828] sm:text-2xl">
+            Validação do pedido
+          </h2>
           <p className="mt-1 text-sm text-slate-500">
             A IA interpreta a linguagem. O catálogo central valida preço e disponibilidade.
           </p>
         </div>
-        <div className="rounded-xl bg-coral-50 p-2 text-coral-500">
+        <div className="hidden rounded-xl bg-coral-50 p-2 text-coral-500 sm:block">
           <Boxes className="h-5 w-5" aria-hidden />
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-3">
+      <div className="mt-5 grid grid-cols-1 gap-3 min-[390px]:grid-cols-3">
         <SummaryCard label="Itens" value={items.length} />
         <SummaryCard label="Válidos" value={validItems.length} tone="text-teal-700" />
         <SummaryCard label="Exceções" value={exceptionItems.length} tone="text-coral-700" />
@@ -85,7 +87,7 @@ export function OrderValidationPanel({
               <Badge tone={statusTone[item.status]}>{item.status}</Badge>
             </div>
 
-            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-4 grid gap-3 text-sm min-[430px]:grid-cols-2 xl:grid-cols-4">
               <ItemFact
                 label="Quantidade"
                 value={item.quantity ? formatQuantityUnit(item.quantity, item.unit) : "-"}
@@ -153,9 +155,11 @@ function SummaryCard({
   tone?: string;
 }) {
   return (
-    <div className="nola-surface p-3">
-      <p className={`text-2xl font-black ${tone}`}>{value}</p>
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+    <div className="nola-surface min-w-0 p-3">
+      <p className={`text-2xl font-black leading-none ${tone}`}>{value}</p>
+      <p className="mt-1 break-words text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-slate-500 sm:text-xs sm:tracking-[0.12em]">
+        {label}
+      </p>
     </div>
   );
 }

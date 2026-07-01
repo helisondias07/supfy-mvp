@@ -22,18 +22,20 @@ export function OrderSimulator({
   onInterpret,
 }: OrderSimulatorProps) {
   return (
-    <section className="nola-card p-5">
+    <section className="nola-card p-4 sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-[#101828]">Pedido recebido</h2>
+          <h2 className="text-xl font-black leading-tight text-[#101828] sm:text-2xl">
+            Pedido recebido
+          </h2>
           <p className="mt-1 text-sm text-slate-500">Simulador de mensagem do cliente</p>
         </div>
-        <div className="rounded-xl bg-coral-50 p-2 text-coral-500">
+        <div className="hidden rounded-xl bg-coral-50 p-2 text-coral-500 sm:block">
           <MessageSquareText className="h-5 w-5" aria-hidden />
         </div>
       </div>
 
-      <div className="nola-surface mt-6 p-4">
+      <div className="nola-surface mt-6 p-3 sm:p-4">
         <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-white/90 p-4 text-sm leading-6 text-slate-700 shadow-sm">
           Bom dia! Pode separar este pedido para entrega ainda hoje?
         </div>
