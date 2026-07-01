@@ -43,6 +43,11 @@ export function validateOrderItems(
     }
 
     if (!item.quantity || item.quantity <= 0 || !unitsMatch(item.unit, product.unit)) {
+      const unitNote =
+        item.quantity > 0 && item.unit
+          ? `O cliente pediu em ${item.unit}, mas o catálogo trabalha em ${product.unit}.`
+          : "Quantidade ou unidade não foi identificada com segurança.";
+
       return {
         ...item,
         product,
@@ -50,7 +55,7 @@ export function validateOrderItems(
         subtotal: 0,
         availableStock: product.stock,
         status: "Revisão humana",
-        note: "Quantidade ou unidade precisa ser confirmada por um operador.",
+        note: `${unitNote} Um operador precisa confirmar antes de seguir.`,
       };
     }
 

@@ -18,7 +18,7 @@ export const initialCatalog: Product[] = [
     unit: "unidade",
     price: 9.5,
     stock: 120,
-    aliases: ["refrigerante cola", "cola 2l", "refrigerante"],
+    aliases: ["refrigerante cola", "cola 2l", "refrigerante", "coca cola", "coca-cola", "coca", "refri cola"],
     status: "Ativo",
   },
   {

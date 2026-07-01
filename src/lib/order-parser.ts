@@ -16,6 +16,11 @@ const unitWords = [
 
 const cleanItemName = (value: string) =>
   value
+    .replace(
+      /\b(bom dia|boa tarde|boa noite|oi|olá|ola|por favor|pedido foi esse|o pedido foi esse)\b/gi,
+      " ",
+    )
+    .replace(/\b(eu quero|quero|queria|preciso|me manda|me envia|manda|envia|separa|pode separar)\b/gi, " ")
     .replace(/\b(de|da|do|dos|das)\b/gi, " ")
     .replace(/\s+/g, " ")
     .trim()
@@ -49,7 +54,7 @@ export function parseOrderMessage(message: string): ParsedOrderItem[] {
   return normalizedMessage
     .split(",")
     .map((part) => part.trim())
-    .filter(Boolean)
+    .filter((part) => /\d/.test(part))
     .map((part, index) => {
       const unitPattern = unitWords.join("|");
       const match = part.match(
@@ -57,13 +62,7 @@ export function parseOrderMessage(message: string): ParsedOrderItem[] {
       );
 
       if (!match) {
-        return {
-          id: `item-${index}`,
-          originalName: cleanItemName(part),
-          quantity: 0,
-          unit: "",
-          rawText: part,
-        };
+        return null;
       }
 
       const quantity = Number(match[1].replace(",", "."));
@@ -77,5 +76,6 @@ export function parseOrderMessage(message: string): ParsedOrderItem[] {
         unit: inferredUnit,
         rawText: part,
       };
-    });
+    })
+    .filter((item): item is ParsedOrderItem => Boolean(item?.originalName));
 }
