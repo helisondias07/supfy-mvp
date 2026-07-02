@@ -105,7 +105,3 @@ src/
   components/
   lib/
 ```
-
-## Status
-
-Projeto publicado e documentação adicionada ao repositório.
