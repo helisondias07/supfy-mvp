@@ -14,7 +14,7 @@ Acesse o protótipo publicado na Vercel:
 
 O PDF com a proposta, diagnóstico, arquitetura e próximos passos está disponível em:
 
-[docs/documentacao-supfy-mvp.pdf](docs/documentacao-supfy-mvp.pdf)
+[Desafio Prático Supfy - Helison Dias](docs/desafio-pratico-supfy-helison-dias.pdf)
 
 ## O que o MVP demonstra
 
@@ -95,7 +95,7 @@ npm run start
 
 ```text
 docs/
-  documentacao-supfy-mvp.pdf
+  desafio-pratico-supfy-helison-dias.pdf
 
 src/
   app/
