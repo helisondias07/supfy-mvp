@@ -68,7 +68,7 @@ function PriceEditorDialog({
           <button
             type="button"
             onClick={onClose}
-            className="nola-button-secondary px-4 py-2.5 text-sm font-bold"
+            className="app-button-secondary px-4 py-2.5 text-sm font-bold"
           >
             Cancelar
           </button>
@@ -76,7 +76,7 @@ function PriceEditorDialog({
             type="button"
             disabled={!isValid}
             onClick={() => onSave(product.id, numericValue)}
-            className="nola-button-primary px-4 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="app-button-primary px-4 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             Salvar preço
           </button>

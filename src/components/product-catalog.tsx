@@ -19,7 +19,7 @@ const integrationLabels = [
 
 export function ProductCatalog({ products, syncPulse, onEditPrice }: ProductCatalogProps) {
   return (
-    <section className="nola-card mt-10 p-5">
+    <section className="app-card mt-10 p-5">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-2xl font-black text-[#101828]">Catálogo central de produtos</h2>
@@ -35,7 +35,7 @@ export function ProductCatalog({ products, syncPulse, onEditPrice }: ProductCata
               className={`rounded-full border px-3 py-2 text-xs font-bold transition ${
                 syncPulse
                   ? "border-coral-500 bg-coral-50 text-coral-700 ring-4 ring-coral-100"
-                  : "border-[var(--nola-border)] bg-white/55 text-slate-600"
+                  : "border-[var(--app-border)] bg-white/55 text-slate-600"
               }`}
             >
               <span className="inline-flex items-center gap-2">
@@ -90,7 +90,7 @@ export function ProductCatalog({ products, syncPulse, onEditPrice }: ProductCata
                   <button
                     type="button"
                     onClick={() => onEditPrice(product)}
-                    className="nola-button-secondary inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold"
+                    className="app-button-secondary inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold"
                     aria-label={`Editar preço de ${product.name}`}
                   >
                     <Edit3 className="h-3.5 w-3.5" aria-hidden />

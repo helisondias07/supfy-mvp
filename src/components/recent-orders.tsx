@@ -9,7 +9,7 @@ type RecentOrdersProps = {
 
 export function RecentOrders({ orders }: RecentOrdersProps) {
   return (
-    <section className="nola-card mt-10 p-4 sm:p-6">
+    <section className="app-card mt-10 p-4 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-coral-50 text-coral-500">
@@ -31,7 +31,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
         <>
           <div className="mt-6 space-y-3 md:hidden">
             {orders.map((order) => (
-              <article key={order.id} className="rounded-2xl border border-[var(--nola-border)] bg-white/60 p-4">
+              <article key={order.id} className="rounded-2xl border border-[var(--app-border)] bg-white/60 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-black text-[#101828]">{order.id}</p>

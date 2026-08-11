@@ -9,6 +9,7 @@ type OrderSimulatorProps = {
   isProcessing: boolean;
   progressMessage: string;
   processedOnce: boolean;
+  processingMode: "local" | "n8n";
   onMessageChange: (message: string) => void;
   onInterpret: () => void;
 };
@@ -18,11 +19,12 @@ export function OrderSimulator({
   isProcessing,
   progressMessage,
   processedOnce,
+  processingMode,
   onMessageChange,
   onInterpret,
 }: OrderSimulatorProps) {
   return (
-    <section className="nola-card p-4 sm:p-5">
+    <section className="app-card p-4 sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-black leading-tight text-[#101828] sm:text-2xl">
@@ -35,7 +37,7 @@ export function OrderSimulator({
         </div>
       </div>
 
-      <div className="nola-surface mt-6 p-3 sm:p-4">
+      <div className="app-surface mt-6 p-3 sm:p-4">
         <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-white/90 p-4 text-sm leading-6 text-slate-700 shadow-sm">
           Bom dia! Pode separar este pedido para entrega ainda hoje?
         </div>
@@ -49,7 +51,7 @@ export function OrderSimulator({
           id="order-message"
           value={message}
           onChange={(event) => onMessageChange(event.target.value)}
-          className="mt-2 min-h-36 w-full resize-y rounded-2xl border border-[var(--nola-border)] bg-white/80 px-4 py-3 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-coral-500 focus:ring-4 focus:ring-coral-100"
+          className="mt-2 min-h-36 w-full resize-y rounded-2xl border border-[var(--app-border)] bg-white/80 px-4 py-3 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-coral-500 focus:ring-4 focus:ring-coral-100"
           placeholder="Ex.: Me manda 5 caixas de leite integral..."
         />
       </div>
@@ -60,7 +62,7 @@ export function OrderSimulator({
             key={example}
             type="button"
             onClick={() => onMessageChange(example)}
-            className="nola-button-secondary px-3 py-2 text-xs font-semibold"
+            className="app-button-secondary px-3 py-2 text-xs font-semibold"
           >
             Exemplo {index + 1}
           </button>
@@ -72,7 +74,7 @@ export function OrderSimulator({
           type="button"
           onClick={onInterpret}
           disabled={isProcessing || !message.trim()}
-          className="nola-button-primary inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+          className="app-button-primary inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
         >
           {isProcessing ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -92,7 +94,9 @@ export function OrderSimulator({
 
       {processedOnce && !isProcessing ? (
         <div className="mt-4">
-          <Badge tone="neutral">Modo demonstração: interpretação simulada</Badge>
+          <Badge tone="neutral">
+            {processingMode === "n8n" ? "Processado pelo workflow n8n" : "Modo local: interpretação simulada"}
+          </Badge>
         </div>
       ) : null}
     </section>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { Boxes, Database, Info, MessagesSquare, PackageCheck } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { MetricCard } from "@/components/metric-card";
@@ -44,7 +43,7 @@ const metrics = [
 ];
 
 const progressMessages = [
-  "IA interpretando a mensagem...",
+  "Processando a mensagem...",
   "Identificando itens e quantidades...",
   "Consultando catálogo central...",
 ];
@@ -70,6 +69,7 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressIndex, setProgressIndex] = useState(0);
   const [processedOnce, setProcessedOnce] = useState(false);
+  const [processingMode, setProcessingMode] = useState<"local" | "n8n">("local");
   const [syncDate, setSyncDate] = useState<Date | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -108,13 +108,34 @@ export default function Home() {
       window.setTimeout(() => setProgressIndex(index), index * 330);
     });
 
-    window.setTimeout(() => {
-      const parsedItems = parseOrderMessage(message);
-      const nextValidatedItems = validateOrderItems(parsedItems, catalog);
-      setValidatedItems(nextValidatedItems);
-      setProcessedOnce(true);
-      setIsProcessing(false);
-    }, 1050);
+    window.setTimeout(async () => {
+      try {
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, catalog }),
+        });
+        const result = (await response.json()) as {
+          items?: ReturnType<typeof parseOrderMessage>;
+          mode?: "local" | "n8n";
+          error?: string;
+        };
+        if (!response.ok || !result.items) {
+          throw new Error(result.error ?? "Não foi possível processar o pedido.");
+        }
+        setProcessingMode(result.mode === "n8n" ? "n8n" : "local");
+        setValidatedItems(validateOrderItems(result.items, catalog));
+      } catch (error) {
+        addToast({
+          title: "Falha ao processar o pedido",
+          description: error instanceof Error ? error.message : "Tente novamente.",
+          type: "info",
+        });
+      } finally {
+        setProcessedOnce(true);
+        setIsProcessing(false);
+      }
+    }, 700);
   }
 
   function handleConfirmValidItems() {
@@ -226,14 +247,6 @@ export default function Home() {
       <main className="mx-auto w-full max-w-[1400px] px-4 py-7 sm:px-6 sm:py-8 lg:px-8">
         <section className="pt-7 sm:pt-10">
           <div className="max-w-4xl">
-            <Image
-              src="/nola-logo-preto.svg"
-              alt="Nola"
-              width={220}
-              height={106}
-              priority
-              className="mb-7 h-16 w-auto sm:mb-8 sm:h-20"
-            />
             <p className="mb-5 text-sm font-extrabold text-coral-500">
               De pedidos por mensagem, para pedidos validados.
             </p>
@@ -247,15 +260,15 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="nola-card mt-6 flex items-start gap-3 p-4 text-[#101828]">
+          <div className="app-card mt-6 flex items-start gap-3 p-4 text-[#101828]">
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-coral-500" aria-hidden />
             <p className="text-sm font-semibold leading-6">
-              A IA organiza a mensagem. O sistema valida produto, preço, unidade e disponibilidade.
+              O fluxo organiza a mensagem. O sistema valida produto, preço, unidade e disponibilidade.
             </p>
           </div>
         </section>
 
-        <section className="nola-section-band mt-10 p-4 sm:p-7 lg:p-8">
+        <section className="app-section-band mt-10 p-4 sm:p-7 lg:p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores do MVP">
             {metrics.map((metric) => (
               <MetricCard key={metric.title} {...metric} />
@@ -268,6 +281,7 @@ export default function Home() {
               isProcessing={isProcessing}
               progressMessage={progressMessages[progressIndex]}
               processedOnce={processedOnce}
+              processingMode={processingMode}
               onMessageChange={setMessage}
               onInterpret={handleInterpret}
             />
@@ -286,7 +300,7 @@ export default function Home() {
         <ResultSection />
 
         <footer className="py-8 text-center text-sm text-slate-500">
-          MVP demonstrativo sem autenticação, banco de dados, WhatsApp real ou chamada externa de IA.
+          Fluxo demonstrativo para pedidos estruturados e validação operacional.
         </footer>
       </main>
     </>

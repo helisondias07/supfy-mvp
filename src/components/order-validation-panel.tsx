@@ -33,7 +33,7 @@ export function OrderValidationPanel({
 
   if (!processedOnce) {
     return (
-      <section className="nola-card flex min-h-[360px] items-center justify-center border-dashed p-6 text-center sm:min-h-[560px] sm:p-8">
+      <section className="app-card flex min-h-[360px] items-center justify-center border-dashed p-6 text-center sm:min-h-[560px] sm:p-8">
         <div>
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-coral-50 text-coral-500">
             <ClipboardCheck className="h-7 w-7" aria-hidden />
@@ -48,8 +48,8 @@ export function OrderValidationPanel({
   }
 
   return (
-    <section className="nola-card p-4 sm:p-5">
-      <div className="flex flex-col gap-4 border-b border-[var(--nola-border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
+    <section className="app-card p-4 sm:p-5">
+      <div className="flex flex-col gap-4 border-b border-[var(--app-border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-xl font-black leading-tight text-[#101828] sm:text-2xl">
             Validação do pedido
@@ -71,7 +71,7 @@ export function OrderValidationPanel({
 
       <div className="mt-5 space-y-3">
         {items.map((item) => (
-          <article key={item.id} className="rounded-2xl border border-[var(--nola-border)] bg-white/55 p-4">
+          <article key={item.id} className="rounded-2xl border border-[var(--app-border)] bg-white/55 p-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
@@ -115,7 +115,7 @@ export function OrderValidationPanel({
         </div>
       ) : null}
 
-      <footer className="mt-5 flex flex-col gap-4 border-t border-[var(--nola-border)] pt-5 lg:flex-row lg:items-center lg:justify-between">
+      <footer className="mt-5 flex flex-col gap-4 border-t border-[var(--app-border)] pt-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm text-slate-500">Total dos itens válidos</p>
           <p className="text-2xl font-black text-[#101828]">{formatCurrency(total)}</p>
@@ -125,7 +125,7 @@ export function OrderValidationPanel({
             type="button"
             onClick={onSendReview}
             disabled={exceptionItems.length === 0}
-            className="nola-button-secondary inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:text-slate-300"
+            className="app-button-secondary inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:text-slate-300"
           >
             <SendToBack className="h-4 w-4" aria-hidden />
             Enviar exceções para revisão
@@ -134,7 +134,7 @@ export function OrderValidationPanel({
             type="button"
             onClick={onConfirm}
             disabled={validItems.length === 0}
-            className="nola-button-primary inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="app-button-primary inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             <CheckCircle2 className="h-4 w-4" aria-hidden />
             Confirmar itens válidos
@@ -155,7 +155,7 @@ function SummaryCard({
   tone?: string;
 }) {
   return (
-    <div className="nola-surface min-w-0 p-3">
+    <div className="app-surface min-w-0 p-3">
       <p className={`text-2xl font-black leading-none ${tone}`}>{value}</p>
       <p className="mt-1 break-words text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-slate-500 sm:text-xs sm:tracking-[0.12em]">
         {label}

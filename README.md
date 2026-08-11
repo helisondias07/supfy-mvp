@@ -1,32 +1,14 @@
 # Supfy MVP
 
-Protótipo frontend criado para o desafio prático da Supfy. O projeto demonstra como uma distribuidora de alimentos pode transformar pedidos recebidos por WhatsApp em pedidos estruturados, validados por um catálogo central de produtos, preços, unidades e disponibilidade.
+Aplicação para transformar mensagens de pedidos em itens estruturados e validados por um catálogo central de produtos, preços, unidades e disponibilidade.
 
-A ideia central do MVP é usar IA para interpretar a linguagem natural do cliente, enquanto o catálogo central continua sendo a fonte confiável para preço, estoque e validação operacional.
+## Recursos atuais
 
-## Protótipo em produção
-
-Acesse o protótipo publicado na Vercel:
-
-[https://supfy-mvp.vercel.app](https://supfy-mvp.vercel.app)
-
-## Documentação
-
-O PDF com a proposta, diagnóstico, arquitetura e próximos passos está disponível em:
-
-[Desafio Prático Supfy - Helison Dias](docs/desafio-pratico-supfy-helison-dias.pdf)
-
-## O que o MVP demonstra
-
-- Recebimento de uma mensagem de pedido em texto livre.
-- Interpretação simulada por IA para identificar item, quantidade e unidade.
-- Validação dos itens por catálogo central.
-- Identificação de produtos válidos, ambiguidades e exceções.
-- Bloqueio de itens com estoque insuficiente ou produto não encontrado.
-- Confirmação de itens válidos.
-- Atualização de estoque em memória.
-- Histórico temporário de pedidos recentes.
-- Edição de preço no catálogo central.
+- Recebimento de pedidos em texto livre.
+- Validação de produto, unidade, preço e estoque pelo catálogo exibido na aplicação.
+- Atualização do estoque em memória após a confirmação.
+- Histórico temporário de pedidos no navegador.
+- Integração opcional com n8n para interpretar a mensagem do pedido.
 
 ## Tecnologias
 
@@ -34,74 +16,48 @@ O PDF com a proposta, diagnóstico, arquitetura e próximos passos está dispon�
 - React 19
 - TypeScript
 - Tailwind CSS
-- lucide-react
+- n8n via webhook HTTP opcional
 
-## Como rodar localmente
-
-Pré-requisitos:
-
-- Node.js instalado.
-- npm instalado.
-
-Instale as dependências:
+## Como rodar
 
 ```bash
 npm install
-```
-
-Inicie o servidor de desenvolvimento:
-
-```bash
 npm run dev
 ```
 
-Acesse no navegador:
+Abra [http://localhost:3000](http://localhost:3000).
 
-```text
-http://localhost:3000
+## Integração com n8n
+
+O frontend nunca chama o n8n diretamente. Ele envia o pedido para `POST /api/orders`, e a rota do Next.js encaminha a requisição ao webhook configurado. Isso mantém a URL e o segredo do webhook no servidor.
+
+1. Copie `.env.example` para `.env.local`.
+2. Preencha `N8N_WEBHOOK_URL` com a URL de produção do seu node **Webhook** no n8n.
+3. Defina `N8N_WEBHOOK_SECRET`; o projeto o envia ao n8n no header `X-Supfy-Webhook-Secret`. No node Webhook, configure **Header Auth** com esse mesmo header e valor.
+4. No n8n, processe `message` e responda pelo node **Respond to Webhook** com o formato abaixo.
+
+```json
+{
+  "items": [
+    {
+      "id": "item-0",
+      "originalName": "leite integral",
+      "quantity": 5,
+      "unit": "caixa",
+      "rawText": "5 caixas de leite integral"
+    }
+  ]
+}
 ```
 
-## Variáveis de ambiente
+O campo `catalog` também é enviado ao workflow, caso a interpretação precise usar aliases e unidades comerciais. A validação de preço e estoque continua no aplicativo, usando o catálogo que está visível ao operador.
 
-Este MVP não exige variáveis de ambiente para rodar localmente. Os dados usados no protótipo são mockados em memória e não há integração real com banco de dados, WhatsApp, ERP ou API de IA nesta versão.
+Sem `N8N_WEBHOOK_URL`, a aplicação usa o interpretador local existente, adequado para demonstração e desenvolvimento.
 
-## Scripts disponíveis
-
-Executar o projeto em desenvolvimento:
+## Scripts
 
 ```bash
 npm run dev
-```
-
-Executar validação de lint:
-
-```bash
 npm run lint
-```
-
-Gerar build de produção:
-
-```bash
 npm run build
-```
-
-Executar a build de produção localmente:
-
-```bash
-npm run start
-```
-
-## Estrutura principal
-
-```text
-docs/
-  desafio-pratico-supfy-helison-dias.pdf
-
-src/
-  app/
-    page.tsx
-    layout.tsx
-    globals.css
-  components/
-  lib/
 ```

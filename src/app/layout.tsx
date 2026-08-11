@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Nola MVP Demo",
+  title: "Supfy | Pedidos inteligentes",
   description: "Protótipo operacional para pedidos inteligentes validados por catálogo central.",
 };
 

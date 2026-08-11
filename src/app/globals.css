@@ -3,19 +3,19 @@
 :root {
   --background: #f2f4f7;
   --foreground: #101828;
-  --nola-primary: #fd6263;
-  --nola-primary-dark: #d34447;
-  --nola-primary-subtle: rgba(253, 98, 99, 0.08);
-  --nola-primary-glow: rgba(253, 98, 99, 0.22);
-  --nola-gradient: linear-gradient(135deg, #fd6263 0%, #d34447 100%);
-  --nola-navy: #101828;
-  --nola-muted: #475467;
-  --nola-soft: #f8f9fb;
-  --nola-card: rgba(255, 255, 255, 0.72);
-  --nola-border: rgba(16, 24, 40, 0.08);
-  --nola-border-hover: rgba(16, 24, 40, 0.15);
-  --nola-shadow: 0 8px 32px rgba(16, 24, 40, 0.1);
-  --nola-shadow-sm: 0 2px 8px rgba(16, 24, 40, 0.06);
+  --app-primary: #fd6263;
+  --app-primary-dark: #d34447;
+  --app-primary-subtle: rgba(253, 98, 99, 0.08);
+  --app-primary-glow: rgba(253, 98, 99, 0.22);
+  --app-gradient: linear-gradient(135deg, #fd6263 0%, #d34447 100%);
+  --app-navy: #101828;
+  --app-muted: #475467;
+  --app-soft: #f8f9fb;
+  --app-card: rgba(255, 255, 255, 0.72);
+  --app-border: rgba(16, 24, 40, 0.08);
+  --app-border-hover: rgba(16, 24, 40, 0.15);
+  --app-shadow: 0 8px 32px rgba(16, 24, 40, 0.1);
+  --app-shadow-sm: 0 2px 8px rgba(16, 24, 40, 0.06);
 }
 
 @theme inline {
@@ -88,16 +88,16 @@ button:disabled {
   animation: slide-in 180ms ease-out;
 }
 
-.nola-card {
-  border: 1px solid var(--nola-border);
+.app-card {
+  border: 1px solid var(--app-border);
   border-radius: 20px;
-  background: var(--nola-card);
-  box-shadow: var(--nola-shadow-sm);
+  background: var(--app-card);
+  box-shadow: var(--app-shadow-sm);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-.nola-section-band {
+.app-section-band {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(16, 24, 40, 0.08);
@@ -121,7 +121,7 @@ button:disabled {
   box-shadow: 0 18px 60px rgba(16, 24, 40, 0.07);
 }
 
-.nola-section-band::before {
+.app-section-band::before {
   content: "";
   position: absolute;
   inset: -1px;
@@ -129,11 +129,11 @@ button:disabled {
   background: radial-gradient(ellipse 55% 35% at 12% 0%, rgba(253, 98, 99, 0.045), transparent 60%);
 }
 
-.nola-section-band > * {
+.app-section-band > * {
   position: relative;
 }
 
-.nola-card-hover {
+.app-card-hover {
   transition:
     border-color 250ms ease,
     background 250ms ease,
@@ -141,16 +141,16 @@ button:disabled {
     box-shadow 250ms ease;
 }
 
-.nola-card-hover:hover {
-  border-color: var(--nola-border-hover);
+.app-card-hover:hover {
+  border-color: var(--app-border-hover);
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: var(--nola-shadow);
+  box-shadow: var(--app-shadow);
   transform: translateY(-2px);
 }
 
-.nola-button-primary {
+.app-button-primary {
   border-radius: 999px;
-  background: var(--nola-gradient);
+  background: var(--app-gradient);
   color: #fff;
   box-shadow: 0 0 18px rgba(253, 98, 99, 0.28);
   transition:
@@ -159,31 +159,31 @@ button:disabled {
     filter 250ms ease;
 }
 
-.nola-button-primary:hover:not(:disabled) {
+.app-button-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 0 30px rgba(253, 98, 99, 0.38);
   filter: brightness(1.04);
 }
 
-.nola-button-secondary {
-  border: 1px solid var(--nola-border);
+.app-button-secondary {
+  border: 1px solid var(--app-border);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.55);
-  color: var(--nola-navy);
+  color: var(--app-navy);
   transition:
     border-color 200ms ease,
     background 200ms ease,
     transform 200ms ease;
 }
 
-.nola-button-secondary:hover:not(:disabled) {
-  border-color: var(--nola-border-hover);
+.app-button-secondary:hover:not(:disabled) {
+  border-color: var(--app-border-hover);
   background: rgba(255, 255, 255, 0.88);
   transform: translateY(-1px);
 }
 
-.nola-surface {
-  border: 1px solid var(--nola-border);
+.app-surface {
+  border: 1px solid var(--app-border);
   border-radius: 16px;
   background: rgba(248, 249, 251, 0.82);
 }

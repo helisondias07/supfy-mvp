@@ -1,0 +1,55 @@
+{
+  "name": "Supfy - Processar pedido",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "supfy-process-order",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d30c60e0-53a3-4e6b-9e95-a16e19d7e9f0",
+      "name": "Receber pedido",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "4c2a136a-8501-4f5c-8874-26d4967521e6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $input.first().json;\nconst message = request.body?.message;\n\nif (typeof message !== 'string' || !message.trim()) {\n  throw new Error('A mensagem do pedido é obrigatória.');\n}\n\n// Opcional: configure a variável SUPFY_WEBHOOK_SECRET no n8n.\n// Se ela existir, o header enviado pela aplicação precisa corresponder.\nconst expectedSecret = $vars.SUPFY_WEBHOOK_SECRET;\nconst receivedSecret = request.headers?.['x-supfy-webhook-secret'];\nif (expectedSecret && receivedSecret !== expectedSecret) {\n  throw new Error('Webhook não autorizado.');\n}\n\nconst unitWords = ['caixas', 'caixa', 'fardos', 'fardo', 'unidades', 'unidade', 'pacotes', 'pacote', 'kg', 'quilo', 'quilos'];\nconst singularUnits = { caixas: 'caixa', fardos: 'fardo', unidades: 'unidade', pacotes: 'pacote', quilos: 'kg', quilo: 'kg' };\nconst cleanItemName = (value) => value\n  .replace(/\\b(bom dia|boa tarde|boa noite|oi|olá|ola|por favor|pedido foi esse|o pedido foi esse)\\b/gi, ' ')\n  .replace(/\\b(eu quero|quero|queria|preciso|me manda|me envia|manda|envia|separa|pode separar)\\b/gi, ' ')\n  .replace(/\\b(de|da|do|dos|das)\\b/gi, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .toLowerCase();\n\nconst unitPattern = unitWords.join('|');\nconst items = message\n  .replace(/\\s+e\\s+(?=\\d+)/gi, ', ')\n  .replace(/[.;]/g, ',')\n  .split(',')\n  .map((part) => part.trim())\n  .filter((part) => /\\d/.test(part))\n  .map((part, index) => {\n    const match = part.match(new RegExp(`(\\\\d+(?:[,.]\\\\d+)?)\\\\s*(${unitPattern})?\\\\s*(?:de\\\\s+)?(.+)`, 'i'));\n    if (!match) return null;\n\n    const quantity = Number(match[1].replace(',', '.'));\n    const receivedUnit = match[2]?.toLowerCase();\n    const unit = receivedUnit ? (singularUnits[receivedUnit] ?? receivedUnit) : 'unidade';\n    const originalName = cleanItemName(match[3]);\n    if (!originalName) return null;\n\n    return {\n      id: `item-${index}`,\n      originalName,\n      quantity,\n      unit,\n      rawText: part,\n    };\n  })\n  .filter(Boolean);\n\nreturn [{ json: { items } }];"
+      },
+      "id": "9d4d9a5f-b77f-4950-80be-2d5196c417b1",
+      "name": "Interpretar pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "32613a30-21be-48b9-b1b8-e2c97bcd6f66",
+      "name": "Responder ao aplicativo",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [520, 0]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receber pedido": {
+      "main": [[{ "node": "Interpretar pedido", "type": "main", "index": 0 }]]
+    },
+    "Interpretar pedido": {
+      "main": [[{ "node": "Responder ao aplicativo", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "c2ed3f09-64e1-4229-a5bd-5c579d024410",
+  "meta": { "templateCredsSetupCompleted": true },
+  "tags": []
+}

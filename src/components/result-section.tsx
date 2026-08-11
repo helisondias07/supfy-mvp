@@ -20,12 +20,12 @@ const results = [
 
 export function ResultSection() {
   return (
-    <section className="nola-card mt-10 bg-white/45 p-6 sm:p-8">
+    <section className="app-card mt-10 bg-white/45 p-6 sm:p-8">
       <h2 className="text-2xl font-black text-[#101828]">Como este MVP gera resultado</h2>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {results.map((item) => (
-          <article key={item.title} className="nola-card nola-card-hover p-5">
+          <article key={item.title} className="app-card app-card-hover p-5">
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-coral-50 text-coral-500">
               <item.icon className="h-5 w-5" aria-hidden />
             </div>

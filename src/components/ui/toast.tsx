@@ -15,7 +15,7 @@ export function ToastStack({ messages, onDismiss }: ToastProps) {
         return (
           <div
             key={message.id}
-            className="nola-card animate-slide-in p-4 text-slate-900 shadow-xl shadow-slate-900/10"
+            className="app-card animate-slide-in p-4 text-slate-900 shadow-xl shadow-slate-900/10"
             role="status"
           >
             <div className="flex gap-3">

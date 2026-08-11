@@ -7,7 +7,7 @@ type BadgeProps = {
 };
 
 const tones = {
-  neutral: "border-[var(--nola-border)] bg-white/70 text-slate-700",
+  neutral: "border-[var(--app-border)] bg-white/70 text-slate-700",
   success: "border-teal-200 bg-teal-50 text-teal-700",
   warning: "border-amber-200 bg-amber-50 text-amber-700",
   danger: "border-rose-200 bg-rose-50 text-rose-700",
