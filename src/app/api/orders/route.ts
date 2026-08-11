@@ -5,6 +5,10 @@ import type { ParsedOrderItem, Product } from "@/lib/types";
 type OrderRequest = { message?: unknown; catalog?: unknown };
 type N8nResponse = { items?: unknown };
 
+function localOrderResponse(message: string) {
+  return NextResponse.json({ items: parseOrderMessage(message), mode: "local" });
+}
+
 function isParsedOrderItem(value: unknown): value is ParsedOrderItem {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
@@ -39,7 +43,7 @@ export async function POST(request: Request) {
 
   const webhookUrl = process.env.N8N_WEBHOOK_URL;
   if (!webhookUrl) {
-    return NextResponse.json({ items: parseOrderMessage(body.message), mode: "local" });
+    return localOrderResponse(body.message);
   }
 
   try {
@@ -57,19 +61,16 @@ export async function POST(request: Request) {
     });
 
     if (!n8nResponse.ok) {
-      return NextResponse.json({ error: "O workflow n8n não processou o pedido." }, { status: 502 });
+      return localOrderResponse(body.message);
     }
 
     const result = (await n8nResponse.json()) as N8nResponse;
     if (!Array.isArray(result.items) || !result.items.every(isParsedOrderItem)) {
-      return NextResponse.json(
-        { error: "O workflow n8n retornou dados em formato inválido." },
-        { status: 502 },
-      );
+      return localOrderResponse(body.message);
     }
 
     return NextResponse.json({ items: result.items, mode: "n8n" });
   } catch {
-    return NextResponse.json({ error: "Não foi possível conectar ao workflow n8n." }, { status: 502 });
+    return localOrderResponse(body.message);
   }
 }
