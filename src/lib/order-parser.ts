@@ -46,26 +46,35 @@ export const quickExamples = [
   "Quero 200 unidades de refrigerante cola 2L.",
 ];
 
+// "1.5" / "1,5" => 1.5; "1.000" / "1.000,5" => milhar no padrão pt-BR
+export function parseQuantity(raw: string): number {
+  const value = raw.trim();
+  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(value)) {
+    return Number(value.replace(/\./g, "").replace(",", "."));
+  }
+  return Number(value.replace(",", "."));
+}
+
 export function parseOrderMessage(message: string): ParsedOrderItem[] {
   const normalizedMessage = message
     .replace(/\s+e\s+(?=\d+)/gi, ", ")
-    .replace(/[.;]/g, ",");
+    .replace(/;|\.(?!\d)|(?<!\d)\./g, ",");
 
   return normalizedMessage
-    .split(",")
+    .split(/,(?!\d)|(?<!\d),/)
     .map((part) => part.trim())
     .filter((part) => /\d/.test(part))
     .map((part, index) => {
       const unitPattern = unitWords.join("|");
       const match = part.match(
-        new RegExp(`(\\d+(?:[,.]\\d+)?)\\s*(${unitPattern})?\\s*(?:de\\s+)?(.+)`, "i"),
+        new RegExp(`(\\d+(?:[.,]\\d+)*)\\s*(${unitPattern})?\\s*(?:de\\s+)?(.+)`, "i"),
       );
 
       if (!match) {
         return null;
       }
 
-      const quantity = Number(match[1].replace(",", "."));
+      const quantity = parseQuantity(match[1]);
       const inferredUnit = match[2] ? singularUnit(match[2]) : "unidade";
       const itemName = cleanItemName(match[3]);
 
