@@ -10,8 +10,11 @@ Restaurantes e distribuidores recebem pedidos por WhatsApp em texto livre. O Sup
 
 🔗 **[supfy-mvp.vercel.app](https://supfy-mvp.vercel.app)**
 
-<!-- TODO(Helison): gravar um GIF/print da aplicação e salvar em docs/demo.gif, depois descomentar a linha abaixo -->
-<!-- ![Demonstração](./docs/demo.gif) -->
+<div align="center">
+  <img src="./docs/demo.gif" alt="Demonstração" width="800" />
+</div>
+
+<!-- Print estático: ./docs/screenshot.png -->
 
 Aplicação para transformar mensagens de pedidos em itens estruturados e validados por um catálogo central de produtos, preços, unidades e disponibilidade.
 
@@ -79,13 +82,17 @@ npm run build
 
 - `npm run lint`: ESLint (config Next.js)
 - `npm run build`: build de produção com checagem de tipos
-- CI no GitHub Actions roda lint e build a cada push/PR
+- CI no GitHub Actions roda lint, testes e build a cada push/PR
 
-<!-- TODO(Helison): adicionar testes unitários do parser/validador de pedidos (Vitest) -->
+- `npm test`: Vitest com testes do parser e da validação de pedidos (`src/lib/__tests__`)
 
 ## Aprendizados
 
-<!-- TODO(Helison): escreva 3 ou 4 bullets com o que você aprendeu (ex.: modelagem do catálogo, integração com n8n, tratamento de texto livre) -->
+- Aprendi a quebrar texto livre de WhatsApp em itens estruturados com regex e normalização: separar por vírgula e por "e" antes de número, padronizar a unidade no singular e limpar saudações e verbos do nome do produto (`order-parser.ts`).
+- Vi que casar o produto pelo alias **mais longo** primeiro evita confusões como "leite" vs "leite integral", e que alguns casos precisam de regra explícita, como "sem lactose" (`order-validation.ts`).
+- Separei a validação em estados claros (Validado, Estoque insuficiente, Produto não encontrado, Revisão humana) para que a automação nunca confirme sozinha um pedido duvidoso. Os casos ambíguos vão para um operador.
+- Integrei o fluxo com o n8n por uma rota de API do Next.js (`/api/orders`) e um workflow exportado em `n8n/`.
+- Cobri o parser e a validação com testes no Vitest, rodando no CI.
 
 ## Licença
 
