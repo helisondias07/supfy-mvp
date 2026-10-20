@@ -1,5 +1,18 @@
 # Supfy MVP
 
+[![CI](https://github.com/helisondias07/supfy-mvp/actions/workflows/ci.yml/badge.svg)](https://github.com/helisondias07/supfy-mvp/actions/workflows/ci.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
+## Sobre
+
+Restaurantes e distribuidores recebem pedidos por WhatsApp em texto livre. O Supfy transforma essas mensagens em pedidos estruturados, validando produto, unidade, preço e estoque contra um catálogo central, o que reduz erro manual e retrabalho.
+
+## Demo
+
+🔗 **[supfy-mvp.vercel.app](https://supfy-mvp.vercel.app)**
+
+<!-- TODO(Helison): gravar um GIF/print da aplicação e salvar em docs/demo.gif, depois descomentar a linha abaixo -->
+<!-- ![Demonstração](./docs/demo.gif) -->
+
 Aplicação para transformar mensagens de pedidos em itens estruturados e validados por um catálogo central de produtos, preços, unidades e disponibilidade.
 
 ## Recursos atuais
@@ -61,3 +74,19 @@ npm run dev
 npm run lint
 npm run build
 ```
+
+## Testes e qualidade
+
+- `npm run lint`: ESLint (config Next.js)
+- `npm run build`: build de produção com checagem de tipos
+- CI no GitHub Actions roda lint e build a cada push/PR
+
+<!-- TODO(Helison): adicionar testes unitários do parser/validador de pedidos (Vitest) -->
+
+## Aprendizados
+
+<!-- TODO(Helison): escreva 3 ou 4 bullets com o que você aprendeu (ex.: modelagem do catálogo, integração com n8n, tratamento de texto livre) -->
+
+## Licença
+
+MIT © Helison Dias
