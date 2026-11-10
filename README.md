@@ -2,98 +2,109 @@
 
 [![CI](https://github.com/helisondias07/supfy-mvp/actions/workflows/ci.yml/badge.svg)](https://github.com/helisondias07/supfy-mvp/actions/workflows/ci.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
-## Sobre
+MVP demonstrativo: mensagens de pedido em texto livre viram itens estruturados e são validadas por um **catálogo sintético** (produto, unidade, preço e estoque). A interpretação é **determinística**. Integração **opcional** com n8n via webhook autenticado.
 
-Restaurantes e distribuidores recebem pedidos por WhatsApp em texto livre. O Supfy transforma essas mensagens em pedidos estruturados, validando produto, unidade, preço e estoque contra um catálogo central, o que reduz erro manual e retrabalho.
+Não há dados pessoais, resultados de piloto nem métricas de negócio reais neste repositório.
 
-## Demo
+## Problema de negócio
 
-🔗 **[supfy-mvp.vercel.app](https://supfy-mvp.vercel.app)**
+Pedidos chegam por mensagem, com quantidade, apelido de produto e unidade informal. Conferir isso na mão gera retrabalho. O recorte deste case é: estruturar a mensagem, recusar o que o catálogo não confirma e deixar exceção com operador.
 
-<div align="center">
-  <img src="./docs/demo.gif" alt="Demonstração" width="800" />
-</div>
-
-<!-- Print estático: ./docs/screenshot.png -->
-
-Aplicação para transformar mensagens de pedidos em itens estruturados e validados por um catálogo central de produtos, preços, unidades e disponibilidade.
-
-## Recursos atuais
-
-- Recebimento de pedidos em texto livre.
-- Validação de produto, unidade, preço e estoque pelo catálogo exibido na aplicação.
-- Atualização do estoque em memória após a confirmação.
-- Histórico temporário de pedidos no navegador.
-- Integração opcional com n8n para interpretar a mensagem do pedido.
-
-## Tecnologias
-
-- Next.js 16
-- React 19
-- TypeScript
-- Tailwind CSS
-- n8n via webhook HTTP opcional
-
-## Como rodar
+## Demo local
 
 ```bash
 npm install
+npm test
+npm run demo
 npm run dev
 ```
 
 Abra [http://localhost:3000](http://localhost:3000).
 
-## Integração com n8n
+1. Use **Pedido válido** → Interpretar → Confirmar itens válidos (estoque da sessão cai).
+2. Use **Exceções mistas** → Enviar exceções para revisão (fila local, sem mensagem externa).
+3. Use **Payload WhatsApp demo** para exercitar `POST /api/inbound/whatsapp` (envelope sintético).
+4. `GET /api/health` mostra se `N8N_WEBHOOK_URL` está definida. Isso **não** dispara o workflow.
 
-O frontend nunca chama o n8n diretamente. Ele envia o pedido para `POST /api/orders`, e a rota do Next.js encaminha a requisição ao webhook configurado. Isso mantém a URL e o segredo do webhook no servidor.
+Há um GIF antigo em `docs/demo.gif`. A fonte de verdade do comportamento atual é a UI + `npm run demo`.
 
-1. Copie `.env.example` para `.env.local`.
-2. Preencha `N8N_WEBHOOK_URL` com a URL de produção do seu node **Webhook** no n8n.
-3. Defina `N8N_WEBHOOK_SECRET`; o projeto o envia ao n8n no header `X-Supfy-Webhook-Secret`. No node Webhook, configure **Header Auth** com esse mesmo header e valor.
-4. No n8n, processe `message` e responda pelo node **Respond to Webhook** com o formato abaixo.
+Arquitetura detalhada: [`docs/architecture.md`](docs/architecture.md). n8n: [`docs/n8n-setup.md`](docs/n8n-setup.md).
 
-```json
-{
-  "items": [
-    {
-      "id": "item-0",
-      "originalName": "leite integral",
-      "quantity": 5,
-      "unit": "caixa",
-      "rawText": "5 caixas de leite integral"
-    }
-  ]
-}
+## Como o sistema decide
+
+```
+Browser → POST /api/orders
+        → n8n (opcional, 15s, header de segredo, X-Idempotency-Key)
+        → ou parser local
+        → UI valida preço/unidade/estoque
+        → confirmação em memória ou fila de revisão
 ```
 
-O campo `catalog` também é enviado ao workflow, caso a interpretação precise usar aliases e unidades comerciais. A validação de preço e estoque continua no aplicativo, usando o catálogo que está visível ao operador.
+- **Não é LLM.** Parser TypeScript e o node Code do n8n usam as mesmas regras (contrato coberto por teste).
+- **n8n não confirma pedido.** Retry do webhook não baixa estoque.
+- Fallback para o parser local é **explícito** na UI (`fallbackReason`). `N8N_DISABLE_FALLBACK=true` desliga o fallback.
 
-Sem `N8N_WEBHOOK_URL`, a aplicação usa o interpretador local existente, adequado para demonstração e desenvolvimento.
+## Recursos
+
+- Simulador de mensagem com cenários sintéticos.
+- Validação: Validado, Estoque insuficiente, Produto não encontrado, Revisão humana, Confirmado.
+- Fila de revisão humana na sessão (sessionStorage).
+- Histórico temporário de pedidos confirmados.
+- Edição de preço no catálogo sintético.
+- `POST /api/inbound/whatsapp` e verificação `hub.challenge` com token de demo.
+- Workflow n8n versionado: validação de entrada, ramo de erro 4xx sem `throw`, interpretação alinhada ao parser.
+
+## Tecnologias neste repositório
+
+- Next.js 16, React 19, TypeScript, Tailwind CSS
+- Vitest e GitHub Actions
+- n8n via JSON importável + HTTP opcional
+
+Não fazem parte deste projeto (embora apareçam em outros contextos): Postgres, Prisma, Redis, FastAPI, RAG, Playwright, deploy em produção.
+
+## Variáveis de ambiente
+
+Veja `.env.example`. Nunca commite `.env.local` nem segredos reais.
 
 ## Scripts
 
-```bash
-npm run dev
-npm run lint
-npm run build
-```
+| Comando | Função |
+| --- | --- |
+| `npm run dev` | App local |
+| `npm test` | Vitest (parser, validação, API, n8n, WhatsApp demo, transcrição) |
+| `npm run demo` | Reexecuta a transcrição dos cenários sintéticos |
+| `npm run lint` | ESLint |
+| `npm run build` | Build de produção |
 
-## Testes e qualidade
+## Competências demonstradas por código
 
-- `npm run lint`: ESLint (config Next.js)
-- `npm run build`: build de produção com checagem de tipos
-- CI no GitHub Actions roda lint, testes e build a cada push/PR
+| Competência | Onde está |
+| --- | --- |
+| Next.js / React / TypeScript / Tailwind | `src/app`, `src/components` |
+| Rota REST, validação 400, timeout 15s, type guards, fallback | `src/lib/process-order.ts`, `src/app/api/orders/route.ts` |
+| Automação n8n versionável, contrato, retry seguro | `n8n/`, `src/lib/n8n-runner.ts`, `src/lib/__tests__/n8n-workflow.test.ts` |
+| Formato de entrada WhatsApp Cloud API (simulado) | `src/lib/whatsapp-inbound.ts`, `src/app/api/inbound/whatsapp/route.ts` |
+| Testes e CI | `src/lib/__tests__`, `.github/workflows/ci.yml` |
+| UX operacional de e-commerce (catálogo, exceção, confirmação) | `src/app/page.tsx`, fila de revisão |
 
-- `npm test`: Vitest com testes do parser e da validação de pedidos (`src/lib/__tests__`)
+## Provas e limitações
 
-## Aprendizados
+**Executado neste ambiente de desenvolvimento**
 
-- Aprendi a quebrar texto livre de WhatsApp em itens estruturados com regex e normalização: separar por vírgula e por "e" antes de número, padronizar a unidade no singular e limpar saudações e verbos do nome do produto (`order-parser.ts`).
-- Vi que casar o produto pelo alias **mais longo** primeiro evita confusões como "leite" vs "leite integral", e que alguns casos precisam de regra explícita, como "sem lactose" (`order-validation.ts`).
-- Separei a validação em estados claros (Validado, Estoque insuficiente, Produto não encontrado, Revisão humana) para que a automação nunca confirme sozinha um pedido duvidoso. Os casos ambíguos vão para um operador.
-- Integrei o fluxo com o n8n por uma rota de API do Next.js (`/api/orders`) e um workflow exportado em `n8n/`.
-- Cobri o parser e a validação com testes no Vitest, rodando no CI.
+- `npm test`, `npm run lint`, `npm run demo` e `npm run build` (quando relatados no PR).
+- Parser e workflow n8n rodados **em processo Node**, sem instância n8n.
+- App local para conferir o fluxo da UI, se o ambiente permitir.
 
-## Licença
+**Não executado de propósito**
 
-MIT © Helison Dias
+- Publicação/deploy, Vercel de produção, Docker Compose de n8n.
+- Disparo de webhook em n8n real.
+- Envio de WhatsApp, e-mail ou Slack.
+- Qualquer conta, credencial ou `.env` real.
+
+**Limitações honestas**
+
+- Estoque e pedidos morrem com a aba.
+- Catálogo e clientes são sintéticos (`Cliente Demo A`).
+- O parser erra em linguagem muito fora dos padrões cobertos pelos testes.
+- Handshake WhatsApp usa token de demonstração, sem validação de assinatura Meta.

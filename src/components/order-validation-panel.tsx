@@ -15,6 +15,7 @@ type OrderValidationPanelProps = {
 
 const statusTone = {
   Validado: "success",
+  Confirmado: "success",
   "Estoque insuficiente": "warning",
   "Produto não encontrado": "danger",
   "Revisão humana": "info",
@@ -28,7 +29,9 @@ export function OrderValidationPanel({
   onSendReview,
 }: OrderValidationPanelProps) {
   const validItems = items.filter((item) => item.status === "Validado");
-  const exceptionItems = items.filter((item) => item.status !== "Validado");
+  const exceptionItems = items.filter(
+    (item) => item.status !== "Validado" && item.status !== "Confirmado",
+  );
   const total = validItems.reduce((sum, item) => sum + item.subtotal, 0);
 
   if (!processedOnce) {
@@ -55,7 +58,7 @@ export function OrderValidationPanel({
             Validação do pedido
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            A IA interpreta a linguagem. O catálogo central valida preço e disponibilidade.
+            Regras determinísticas extraem itens. O catálogo valida preço, unidade e disponibilidade.
           </p>
         </div>
         <div className="hidden rounded-xl bg-coral-50 p-2 text-coral-500 sm:block">

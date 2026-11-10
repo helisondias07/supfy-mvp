@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Boxes, Database, Info, MessagesSquare, PackageCheck } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
+import { ArchitecturePanel } from "@/components/architecture-panel";
 import { MetricCard } from "@/components/metric-card";
 import { OrderSimulator } from "@/components/order-simulator";
 import { OrderValidationPanel } from "@/components/order-validation-panel";
@@ -10,34 +11,37 @@ import { PriceEditor } from "@/components/price-editor";
 import { ProductCatalog } from "@/components/product-catalog";
 import { RecentOrders } from "@/components/recent-orders";
 import { ResultSection } from "@/components/result-section";
+import { ReviewQueue } from "@/components/review-queue";
 import { ToastStack } from "@/components/ui/toast";
-import { getProductStatus, initialCatalog } from "@/lib/catalog-data";
+import { catalogNotice, getProductStatus, initialCatalog } from "@/lib/catalog-data";
+import { demoScenarios } from "@/lib/demo-scenarios";
 import { formatQuantityUnit, formatSyncTime } from "@/lib/formatters";
 import { parseOrderMessage } from "@/lib/order-parser";
 import { validateOrderItems } from "@/lib/order-validation";
-import type { Product, RecentOrder, ToastMessage, ValidatedOrderItem } from "@/lib/types";
+import type { Product, RecentOrder, ReviewTicket, ToastMessage, ValidatedOrderItem } from "@/lib/types";
 
 const recentOrdersStorageKey = "supfy-mvp:recent-orders";
+const reviewQueueStorageKey = "supfy-mvp:review-queue";
 
 const metrics = [
   {
-    title: "400 pedidos/dia",
-    description: "Volume atual que depende de leitura e digitação manual.",
+    title: "Parser determinístico",
+    description: "Regex e normalização de unidades. Não há chamada a LLM neste MVP.",
     icon: MessagesSquare,
   },
   {
-    title: "Fonte única de verdade",
-    description: "Produtos, preços e disponibilidade em um mesmo lugar.",
+    title: "Catálogo sintético",
+    description: "Preço, unidade e estoque só são decididos nesta aplicação.",
     icon: Database,
   },
   {
     title: "Revisão humana",
-    description: "Exceções continuam visíveis para o operador.",
+    description: "Exceções entram numa fila local. Nada é enviado para fora.",
     icon: Boxes,
   },
   {
-    title: "Estoque atualizado",
-    description: "A confirmação do pedido atualiza a disponibilidade.",
+    title: "Estoque em memória",
+    description: "A confirmação atualiza disponibilidade só nesta sessão do navegador.",
     icon: PackageCheck,
   },
 ];
@@ -48,19 +52,17 @@ const progressMessages = [
   "Consultando catálogo central...",
 ];
 
-const loadRecentOrders = () => {
-  if (typeof window === "undefined") return [];
-
-  const savedOrders = window.sessionStorage.getItem(recentOrdersStorageKey);
-  if (!savedOrders) return [];
-
+function readSessionJson<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  const raw = window.sessionStorage.getItem(key);
+  if (!raw) return fallback;
   try {
-    return JSON.parse(savedOrders) as RecentOrder[];
+    return JSON.parse(raw) as T;
   } catch {
-    window.sessionStorage.removeItem(recentOrdersStorageKey);
-    return [];
+    window.sessionStorage.removeItem(key);
+    return fallback;
   }
-};
+}
 
 export default function Home() {
   const [catalog, setCatalog] = useState<Product[]>(initialCatalog);
@@ -70,18 +72,30 @@ export default function Home() {
   const [progressIndex, setProgressIndex] = useState(0);
   const [processedOnce, setProcessedOnce] = useState(false);
   const [processingMode, setProcessingMode] = useState<"local" | "n8n">("local");
+  const [fallbackReason, setFallbackReason] = useState<string | undefined>();
+  const [inboundSource, setInboundSource] = useState<"texto" | "whatsapp-demo">("texto");
+  const [customerName, setCustomerName] = useState("Cliente Demo A");
   const [syncDate, setSyncDate] = useState<Date | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [syncPulse, setSyncPulse] = useState(false);
   const [confirmationFeedback, setConfirmationFeedback] = useState("");
-  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>(loadRecentOrders);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>(() =>
+    readSessionJson(recentOrdersStorageKey, []),
+  );
+  const [reviewTickets, setReviewTickets] = useState<ReviewTicket[]>(() =>
+    readSessionJson(reviewQueueStorageKey, []),
+  );
 
   const syncLabel = useMemo(() => (syncDate ? formatSyncTime(syncDate) : "agora"), [syncDate]);
 
   useEffect(() => {
     window.sessionStorage.setItem(recentOrdersStorageKey, JSON.stringify(recentOrders));
   }, [recentOrders]);
+
+  useEffect(() => {
+    window.sessionStorage.setItem(reviewQueueStorageKey, JSON.stringify(reviewTickets));
+  }, [reviewTickets]);
 
   function addToast(messageData: Omit<ToastMessage, "id">) {
     const id = crypto.randomUUID();
@@ -97,11 +111,25 @@ export default function Home() {
     window.setTimeout(() => setSyncPulse(false), 1200);
   }
 
+  function handleSelectScenario(scenarioId: string) {
+    const scenario = demoScenarios.find((item) => item.id === scenarioId);
+    if (!scenario) return;
+    setMessage(scenario.message);
+    setInboundSource(scenario.source);
+    setCustomerName("Cliente Demo A");
+  }
+
+  function handleMessageChange(nextMessage: string) {
+    setInboundSource("texto");
+    setMessage(nextMessage);
+  }
+
   function handleInterpret() {
     if (!message.trim() || isProcessing) return;
 
     setIsProcessing(true);
     setConfirmationFeedback("");
+    setFallbackReason(undefined);
     setProgressIndex(0);
 
     progressMessages.forEach((_, index) => {
@@ -110,20 +138,40 @@ export default function Home() {
 
     window.setTimeout(async () => {
       try {
+        if (inboundSource === "whatsapp-demo") {
+          const scenario = demoScenarios.find((item) => item.id === "whatsapp");
+          const inbound = await fetch("/api/inbound/whatsapp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(scenario?.whatsappPayload ?? { message }),
+          });
+          const inboundResult = (await inbound.json()) as { message?: string; error?: string };
+          if (!inbound.ok || !inboundResult.message) {
+            throw new Error(inboundResult.error ?? "Payload WhatsApp demo rejeitado.");
+          }
+        }
+
+        const requestId = crypto.randomUUID();
         const response = await fetch("/api/orders", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message, catalog }),
+          headers: {
+            "Content-Type": "application/json",
+            "X-Idempotency-Key": requestId,
+          },
+          body: JSON.stringify({ message, catalog, requestId }),
         });
         const result = (await response.json()) as {
           items?: ReturnType<typeof parseOrderMessage>;
           mode?: "local" | "n8n";
+          interpreter?: "deterministic-rules";
+          fallbackReason?: string;
           error?: string;
         };
         if (!response.ok || !result.items) {
           throw new Error(result.error ?? "Não foi possível processar o pedido.");
         }
         setProcessingMode(result.mode === "n8n" ? "n8n" : "local");
+        setFallbackReason(result.fallbackReason);
         setValidatedItems(validateOrderItems(result.items, catalog));
       } catch (error) {
         addToast({
@@ -140,7 +188,9 @@ export default function Home() {
 
   function handleConfirmValidItems() {
     const validItems = validatedItems.filter((item) => item.status === "Validado" && item.product);
-    const exceptionItems = validatedItems.filter((item) => item.status !== "Validado");
+    const exceptionItems = validatedItems.filter(
+      (item) => item.status !== "Validado" && item.status !== "Confirmado",
+    );
     if (validItems.length === 0) return;
     const orderTotal = validItems.reduce((sum, item) => sum + item.subtotal, 0);
     const orderSummary = validItems
@@ -172,16 +222,16 @@ export default function Home() {
           ? {
               ...item,
               availableStock: Math.max(0, item.availableStock - item.quantity),
-              status: "Revisão humana",
-              note: "Item já confirmado. Novo pedido exige nova validação de estoque.",
+              status: "Confirmado",
+              note: "Item confirmado nesta sessão. Novo pedido exige nova validação de estoque.",
             }
           : item,
       ),
     );
     const nextOrder: RecentOrder = {
       id: `#${String(Date.now()).slice(-5)}`,
-      customer: "Cliente WhatsApp",
-      source: "WhatsApp",
+      customer: customerName,
+      source: inboundSource === "whatsapp-demo" ? "WhatsApp demo" : "Texto demo",
       createdAt: formatSyncTime(new Date()),
       total: orderTotal,
       validItems: validItems.length,
@@ -195,21 +245,42 @@ export default function Home() {
     setRecentOrders((currentOrders) => [nextOrder, ...currentOrders].slice(0, 6));
     refreshSyncVisual();
     setConfirmationFeedback(
-      "Pedido confirmado. Disponibilidade atualizada para operação e atendimento.",
+      "Pedido confirmado nesta sessão. Disponibilidade do catálogo sintético foi atualizada em memória.",
     );
     addToast({
       title: "Pedido confirmado",
-      description: "Disponibilidade atualizada para operação e atendimento.",
+      description: "Estoque sintético atualizado apenas neste navegador.",
       type: "success",
     });
   }
 
   function handleSendReview() {
+    const exceptionItems = validatedItems.filter(
+      (item) => item.status !== "Validado" && item.status !== "Confirmado",
+    );
+    if (exceptionItems.length === 0) return;
+
+    const ticket: ReviewTicket = {
+      id: `REV-${String(Date.now()).slice(-5)}`,
+      createdAt: formatSyncTime(new Date()),
+      sourceMessage: message,
+      status: "Aberta",
+      items: exceptionItems,
+    };
+    setReviewTickets((current) => [ticket, ...current].slice(0, 8));
     addToast({
-      title: "Exceções encaminhadas",
-      description: "Itens com inconsistência permanecem visíveis para revisão humana.",
+      title: "Exceções na fila de revisão",
+      description: "Registro local desta sessão. Nenhuma mensagem externa foi disparada.",
       type: "info",
     });
+  }
+
+  function handleResolveTicket(ticketId: string) {
+    setReviewTickets((current) =>
+      current.map((ticket) =>
+        ticket.id === ticketId ? { ...ticket, status: "Resolvida" } : ticket,
+      ),
+    );
   }
 
   function handleSavePrice(productId: string, price: number) {
@@ -226,13 +297,19 @@ export default function Home() {
     setEditingProduct(null);
     refreshSyncVisual();
     addToast({
-      title: "Preço atualizado no catálogo central.",
+      title: "Preço atualizado no catálogo sintético.",
       type: "success",
     });
   }
 
   return (
     <>
+      <a
+        href="#conteudo-principal"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-bold"
+      >
+        Pular para o conteúdo
+      </a>
       <AppHeader syncLabel={syncLabel} />
       <ToastStack
         messages={toasts}
@@ -244,32 +321,30 @@ export default function Home() {
         onSave={handleSavePrice}
       />
 
-      <main className="mx-auto w-full max-w-[1400px] px-4 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <main id="conteudo-principal" className="mx-auto w-full max-w-[1400px] px-4 py-7 sm:px-6 sm:py-8 lg:px-8">
         <section className="pt-7 sm:pt-10">
           <div className="max-w-4xl">
             <p className="mb-5 text-sm font-extrabold text-coral-500">
               De pedidos por mensagem, para pedidos validados.
             </p>
             <h1 className="max-w-5xl text-4xl font-black leading-[1.04] text-[#101828] sm:text-6xl lg:text-7xl">
-              Pedidos inteligentes para uma operação{" "}
-              <span className="text-coral-500">conectada.</span>
+              Pedidos estruturados para uma operação{" "}
+              <span className="text-coral-500">conferida.</span>
             </h1>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
-              Protótipo de um fluxo que transforma mensagens de WhatsApp em pedidos estruturados,
-              validados por um catálogo central.
+              Protótipo que transforma texto livre em itens de pedido, valida contra um catálogo
+              sintético e deixa exceções com o operador. Parsing por regras, n8n opcional, sem LLM.
             </p>
           </div>
 
           <div className="app-card mt-6 flex items-start gap-3 p-4 text-[#101828]">
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-coral-500" aria-hidden />
-            <p className="text-sm font-semibold leading-6">
-              O fluxo organiza a mensagem. O sistema valida produto, preço, unidade e disponibilidade.
-            </p>
+            <p className="text-sm font-semibold leading-6">{catalogNotice}</p>
           </div>
         </section>
 
         <section className="app-section-band mt-10 p-4 sm:p-7 lg:p-8">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores do MVP">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Capacidades do MVP">
             {metrics.map((metric) => (
               <MetricCard key={metric.title} {...metric} />
             ))}
@@ -282,7 +357,11 @@ export default function Home() {
               progressMessage={progressMessages[progressIndex]}
               processedOnce={processedOnce}
               processingMode={processingMode}
-              onMessageChange={setMessage}
+              interpreter="deterministic-rules"
+              fallbackReason={fallbackReason}
+              inboundSource={inboundSource}
+              onSelectScenario={handleSelectScenario}
+              onMessageChange={handleMessageChange}
               onInterpret={handleInterpret}
             />
             <OrderValidationPanel
@@ -295,12 +374,15 @@ export default function Home() {
           </div>
         </section>
 
+        <ArchitecturePanel />
+        <ReviewQueue tickets={reviewTickets} onResolve={handleResolveTicket} />
         <RecentOrders orders={recentOrders} />
         <ProductCatalog products={catalog} syncPulse={syncPulse} onEditPrice={setEditingProduct} />
         <ResultSection />
 
         <footer className="py-8 text-center text-sm text-slate-500">
-          Fluxo demonstrativo para pedidos estruturados e validação operacional.
+          Ambiente demonstrativo local. Sem deploy, sem disparo de n8n real neste repositório e sem
+          dados pessoais.
         </footer>
       </main>
     </>
