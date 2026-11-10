@@ -21,7 +21,7 @@ const results = [
 export function ResultSection() {
   return (
     <section className="app-card mt-10 bg-white/45 p-6 sm:p-8">
-      <h2 className="text-2xl font-black text-[#101828]">Como este MVP gera resultado</h2>
+      <h2 className="text-2xl font-black text-[#101828]">O que este MVP demonstra</h2>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {results.map((item) => (
@@ -36,8 +36,9 @@ export function ResultSection() {
       </div>
 
       <p className="mt-6 text-sm leading-6 text-slate-600">
-        Indicadores a validar em um piloto: tempo de criação do pedido, percentual de pedidos sem
-        redigitação, erros por pedido e vendas de itens indisponíveis.
+        Não há métricas de negócio reais neste repositório. Um piloto futuro poderia medir tempo de
+        digitação, pedidos sem retrabalho e tentativas de vender item indisponível — esses números
+        ainda não existem aqui.
       </p>
     </section>
   );

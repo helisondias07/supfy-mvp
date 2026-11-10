@@ -10,8 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Supfy | Pedidos inteligentes",
-  description: "Protótipo operacional para pedidos inteligentes validados por catálogo central.",
+  title: "Supfy | Pedidos estruturados",
+  description:
+    "MVP demonstrativo: texto livre vira itens validados por catálogo sintético, com parser determinístico e n8n opcional.",
 };
 
 export default function RootLayout({

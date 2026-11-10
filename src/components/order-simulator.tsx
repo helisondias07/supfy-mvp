@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, MessageSquareText, Play, Sparkles } from "lucide-react";
-import { quickExamples } from "@/lib/order-parser";
+import { demoScenarios } from "@/lib/demo-scenarios";
 import { Badge } from "./ui/badge";
 
 type OrderSimulatorProps = {
@@ -10,6 +10,10 @@ type OrderSimulatorProps = {
   progressMessage: string;
   processedOnce: boolean;
   processingMode: "local" | "n8n";
+  interpreter: "deterministic-rules";
+  fallbackReason?: string;
+  inboundSource: "texto" | "whatsapp-demo";
+  onSelectScenario: (scenarioId: string) => void;
   onMessageChange: (message: string) => void;
   onInterpret: () => void;
 };
@@ -20,6 +24,10 @@ export function OrderSimulator({
   progressMessage,
   processedOnce,
   processingMode,
+  interpreter,
+  fallbackReason,
+  inboundSource,
+  onSelectScenario,
   onMessageChange,
   onInterpret,
 }: OrderSimulatorProps) {
@@ -30,7 +38,9 @@ export function OrderSimulator({
           <h2 className="text-xl font-black leading-tight text-[#101828] sm:text-2xl">
             Pedido recebido
           </h2>
-          <p className="mt-1 text-sm text-slate-500">Simulador de mensagem do cliente</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Simulador de mensagem. Dados sintéticos, sem WhatsApp real.
+          </p>
         </div>
         <div className="hidden rounded-xl bg-coral-50 p-2 text-coral-500 sm:block">
           <MessageSquareText className="h-5 w-5" aria-hidden />
@@ -45,7 +55,7 @@ export function OrderSimulator({
 
       <div className="mt-5">
         <label htmlFor="order-message" className="text-sm font-semibold text-[#101828]">
-          Mensagem do cliente
+          Mensagem do cliente (demo)
         </label>
         <textarea
           id="order-message"
@@ -57,14 +67,15 @@ export function OrderSimulator({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {quickExamples.map((example, index) => (
+        {demoScenarios.map((scenario) => (
           <button
-            key={example}
+            key={scenario.id}
             type="button"
-            onClick={() => onMessageChange(example)}
+            onClick={() => onSelectScenario(scenario.id)}
             className="app-button-secondary px-3 py-2 text-xs font-semibold"
+            title={scenario.description}
           >
-            Exemplo {index + 1}
+            {scenario.label}
           </button>
         ))}
       </div>
@@ -85,7 +96,7 @@ export function OrderSimulator({
         </button>
 
         {isProcessing ? (
-          <span className="inline-flex items-center gap-2 text-sm font-medium text-coral-700">
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-coral-700" aria-live="polite">
             <Sparkles className="h-4 w-4 animate-pulse" aria-hidden />
             {progressMessage}
           </span>
@@ -93,11 +104,23 @@ export function OrderSimulator({
       </div>
 
       {processedOnce && !isProcessing ? (
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-2">
           <Badge tone="neutral">
-            {processingMode === "n8n" ? "Processado pelo workflow n8n" : "Modo local: interpretação simulada"}
+            {processingMode === "n8n" ? "Workflow n8n (regras)" : "Parser local (regras)"}
+          </Badge>
+          <Badge tone="info">
+            {interpreter === "deterministic-rules" ? "Não é LLM" : interpreter}
+          </Badge>
+          <Badge tone="neutral">
+            {inboundSource === "whatsapp-demo" ? "Origem: payload WhatsApp demo" : "Origem: texto demo"}
           </Badge>
         </div>
+      ) : null}
+
+      {fallbackReason ? (
+        <p className="mt-3 text-sm leading-6 text-amber-800" role="status">
+          Fallback local: {fallbackReason} Confirmação de preço e estoque continua nesta aplicação.
+        </p>
       ) : null}
     </section>
   );

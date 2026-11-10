@@ -26,7 +26,8 @@ export type OrderStatus =
   | "Validado"
   | "Estoque insuficiente"
   | "Produto não encontrado"
-  | "Revisão humana";
+  | "Revisão humana"
+  | "Confirmado";
 
 export type ValidatedOrderItem = ParsedOrderItem & {
   product?: Product;
@@ -47,13 +48,21 @@ export type ToastMessage = {
 export type RecentOrder = {
   id: string;
   customer: string;
-  source: "WhatsApp";
+  source: "WhatsApp demo" | "Texto demo";
   createdAt: string;
   total: number;
   validItems: number;
   exceptionItems: number;
   status: "Confirmado" | "Confirmado com exceções";
   summary: string;
+};
+
+export type ReviewTicket = {
+  id: string;
+  createdAt: string;
+  sourceMessage: string;
+  status: "Aberta" | "Resolvida";
+  items: ValidatedOrderItem[];
 };
 
 export type Metric = {

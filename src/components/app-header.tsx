@@ -11,7 +11,7 @@ export function AppHeader({ syncLabel }: AppHeaderProps) {
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <span className="hidden text-xs font-bold uppercase tracking-[0.16em] text-slate-500 sm:inline">
-              SUPFY · PEDIDOS INTELIGENTES
+              SUPFY · PEDIDOS ESTRUTURADOS
             </span>
           </div>
 
@@ -23,7 +23,7 @@ export function AppHeader({ syncLabel }: AppHeaderProps) {
 
         <div className="flex flex-col gap-3 sm:hidden">
           <span className="text-[0.68rem] font-extrabold uppercase leading-4 tracking-[0.18em] text-slate-500">
-            SUPFY · PEDIDOS INTELIGENTES
+            SUPFY · PEDIDOS ESTRUTURADOS
           </span>
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <Badge tone="info">Ambiente demonstrativo</Badge>

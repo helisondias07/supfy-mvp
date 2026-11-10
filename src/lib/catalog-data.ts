@@ -1,5 +1,8 @@
 import type { Product } from "./types";
 
+export const catalogNotice =
+  "Catálogo sintético de demonstração. Preços, estoques e aliases não representam operação real.";
+
 export const initialCatalog: Product[] = [
   {
     id: "P-001",

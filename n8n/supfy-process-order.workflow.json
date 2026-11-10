@@ -12,44 +12,173 @@
       "name": "Receber pedido",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "webhookId": "4c2a136a-8501-4f5c-8874-26d4967521e6"
     },
     {
       "parameters": {
-        "jsCode": "const request = $input.first().json;\nconst message = request.body?.message;\n\nif (typeof message !== 'string' || !message.trim()) {\n  throw new Error('A mensagem do pedido é obrigatória.');\n}\n\n// Opcional: configure a variável SUPFY_WEBHOOK_SECRET no n8n.\n// Se ela existir, o header enviado pela aplicação precisa corresponder.\nconst expectedSecret = $vars.SUPFY_WEBHOOK_SECRET;\nconst receivedSecret = request.headers?.['x-supfy-webhook-secret'];\nif (expectedSecret && receivedSecret !== expectedSecret) {\n  throw new Error('Webhook não autorizado.');\n}\n\nconst unitWords = ['caixas', 'caixa', 'fardos', 'fardo', 'unidades', 'unidade', 'pacotes', 'pacote', 'kg', 'quilo', 'quilos'];\nconst singularUnits = { caixas: 'caixa', fardos: 'fardo', unidades: 'unidade', pacotes: 'pacote', quilos: 'kg', quilo: 'kg' };\nconst cleanItemName = (value) => value\n  .replace(/\\b(bom dia|boa tarde|boa noite|oi|olá|ola|por favor|pedido foi esse|o pedido foi esse)\\b/gi, ' ')\n  .replace(/\\b(eu quero|quero|queria|preciso|me manda|me envia|manda|envia|separa|pode separar)\\b/gi, ' ')\n  .replace(/\\b(de|da|do|dos|das)\\b/gi, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .toLowerCase();\n\nconst unitPattern = unitWords.join('|');\nconst items = message\n  .replace(/\\s+e\\s+(?=\\d+)/gi, ', ')\n  .replace(/[.;]/g, ',')\n  .split(',')\n  .map((part) => part.trim())\n  .filter((part) => /\\d/.test(part))\n  .map((part, index) => {\n    const match = part.match(new RegExp(`(\\\\d+(?:[,.]\\\\d+)?)\\\\s*(${unitPattern})?\\\\s*(?:de\\\\s+)?(.+)`, 'i'));\n    if (!match) return null;\n\n    const quantity = Number(match[1].replace(',', '.'));\n    const receivedUnit = match[2]?.toLowerCase();\n    const unit = receivedUnit ? (singularUnits[receivedUnit] ?? receivedUnit) : 'unidade';\n    const originalName = cleanItemName(match[3]);\n    if (!originalName) return null;\n\n    return {\n      id: `item-${index}`,\n      originalName,\n      quantity,\n      unit,\n      rawText: part,\n    };\n  })\n  .filter(Boolean);\n\nreturn [{ json: { items } }];"
+        "jsCode": "const request = $input.first().json;\nconst body = request.body && typeof request.body === 'object' ? request.body : request;\nconst headers = request.headers ?? {};\nconst expectedSecret = $vars.SUPFY_WEBHOOK_SECRET;\nconst receivedSecret = headers['x-supfy-webhook-secret'] ?? headers['X-Supfy-Webhook-Secret'];\n\nif (expectedSecret && receivedSecret !== expectedSecret) {\n  return [{ json: { ok: false, retryable: false, statusCode: 401, error: 'Webhook não autorizado.' } }];\n}\n\nconst message = body.message;\nif (typeof message !== 'string' || !message.trim()) {\n  return [{ json: { ok: false, retryable: false, statusCode: 400, error: 'A mensagem do pedido é obrigatória.' } }];\n}\n\nif (body.catalog !== undefined && !Array.isArray(body.catalog)) {\n  return [{ json: { ok: false, retryable: false, statusCode: 400, error: 'Catálogo inválido.' } }];\n}\n\nconst headerIdempotency = headers['x-idempotency-key'] ?? headers['X-Idempotency-Key'];\nconst requestId =\n  typeof body.requestId === 'string' && body.requestId.trim()\n    ? body.requestId.trim()\n    : (typeof headerIdempotency === 'string' && headerIdempotency.trim() ? headerIdempotency.trim() : null);\n\nreturn [{\n  json: {\n    ok: true,\n    retryable: false,\n    message: message.trim(),\n    catalog: Array.isArray(body.catalog) ? body.catalog : [],\n    requestId,\n  },\n}];\n"
+      },
+      "id": "a1c0e8d2-1f3b-4c77-9d2a-0b8c4f11e201",
+      "name": "Validar entrada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ok-true",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b2d1f9e3-2a4c-4d88-8e3b-1c9d5a22f312",
+      "name": "Entrada válida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst message = input.message;\n\nconst unitWords = ['caixas', 'caixa', 'fardos', 'fardo', 'unidades', 'unidade', 'pacotes', 'pacote', 'kg', 'quilo', 'quilos'];\nconst singularUnits = { caixas: 'caixa', fardos: 'fardo', unidades: 'unidade', pacotes: 'pacote', quilos: 'kg', quilo: 'kg' };\n\nconst cleanItemName = (value) => value\n  .replace(/\\b(bom dia|boa tarde|boa noite|oi|olá|ola|por favor|pedido foi esse|o pedido foi esse)\\b/gi, ' ')\n  .replace(/\\b(eu quero|quero|queria|preciso|me manda|me envia|manda|envia|separa|pode separar)\\b/gi, ' ')\n  .replace(/\\b(de|da|do|dos|das)\\b/gi, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .toLowerCase();\n\nconst parseQuantity = (raw) => {\n  const value = String(raw).trim();\n  if (/^\\d{1,3}(\\.\\d{3})+(,\\d+)?$/.test(value)) {\n    return Number(value.replace(/\\./g, '').replace(',', '.'));\n  }\n  return Number(value.replace(',', '.'));\n};\n\nconst normalizedMessage = message\n  .replace(/\\s+e\\s+(?=\\d+)/gi, ', ')\n  .replace(/;|\\.(?!\\d)|(?<!\\d)\\./g, ',');\n\nconst items = normalizedMessage\n  .split(/,(?!\\d)|(?<!\\d),/)\n  .map((part) => part.trim())\n  .filter((part) => /\\d/.test(part))\n  .map((part, index) => {\n    const unitPattern = unitWords.join('|');\n    const match = part.match(new RegExp(`(\\\\d+(?:[.,]\\\\d+)*)\\\\s*(${unitPattern})?\\\\s*(?:de\\\\s+)?(.+)`, 'i'));\n    if (!match) return null;\n\n    const quantity = parseQuantity(match[1]);\n    const receivedUnit = match[2]?.toLowerCase();\n    const unit = receivedUnit ? (singularUnits[receivedUnit] ?? receivedUnit) : 'unidade';\n    const originalName = cleanItemName(match[3]);\n    if (!originalName || !Number.isFinite(quantity)) return null;\n\n    return {\n      id: `item-${index}`,\n      originalName,\n      quantity,\n      unit,\n      rawText: part,\n    };\n  })\n  .filter(Boolean);\n\nreturn [{\n  json: {\n    ok: true,\n    retryable: false,\n    statusCode: 200,\n    items,\n    requestId: input.requestId ?? null,\n    interpreter: 'deterministic-rules',\n  },\n}];\n"
       },
       "id": "9d4d9a5f-b77f-4950-80be-2d5196c417b1",
       "name": "Interpretar pedido",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [260, 0]
+      "position": [
+        720,
+        -80
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ $json }}",
-        "options": {}
+        "responseBody": "={{ { items: $json.items, requestId: $json.requestId, interpreter: $json.interpreter, retryable: false } }}",
+        "options": {
+          "responseCode": "200"
+        }
       },
       "id": "32613a30-21be-48b9-b1b8-e2c97bcd6f66",
-      "name": "Responder ao aplicativo",
+      "name": "Responder sucesso",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [520, 0]
+      "position": [
+        960,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { error: $json.error, retryable: false } }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode || 400 }}"
+        }
+      },
+      "id": "e4f3a0b1-5c6d-4e99-af4c-2d0e6b33a423",
+      "name": "Responder erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        720,
+        140
+      ]
     }
   ],
   "pinData": {},
   "connections": {
     "Receber pedido": {
-      "main": [[{ "node": "Interpretar pedido", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Validar entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar entrada": {
+      "main": [
+        [
+          {
+            "node": "Entrada válida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada válida?": {
+      "main": [
+        [
+          {
+            "node": "Interpretar pedido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Interpretar pedido": {
-      "main": [[{ "node": "Responder ao aplicativo", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Responder sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
-  "settings": { "executionOrder": "v1" },
-  "versionId": "c2ed3f09-64e1-4229-a5bd-5c579d024410",
-  "meta": { "templateCredsSetupCompleted": true },
-  "tags": []
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e7c4d18a-11b2-4f90-9c3e-7a1f8d5b6c20",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    {
+      "name": "supfy-demo",
+      "id": "tag-supfy-demo"
+    }
+  ]
 }

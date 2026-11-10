@@ -1,6 +1,7 @@
 "use client";
 
 import { Edit3, RefreshCw } from "lucide-react";
+import { catalogNotice } from "@/lib/catalog-data";
 import { formatCurrency } from "@/lib/formatters";
 import type { Product } from "@/lib/types";
 import { Badge } from "./ui/badge";
@@ -24,7 +25,7 @@ export function ProductCatalog({ products, syncPulse, onEditPrice }: ProductCata
         <div>
           <h2 className="text-2xl font-black text-[#101828]">Catálogo central de produtos</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Esta é a fonte única de verdade para produto, preço, unidade e disponibilidade.
+            Fonte de verdade para produto, preço, unidade e disponibilidade nesta sessão. {catalogNotice}
           </p>
         </div>
 
